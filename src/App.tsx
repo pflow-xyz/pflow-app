@@ -108,7 +108,7 @@ function importFromUrl(url: string): any {
             currentPlace = null;
             currentArc = null;
             currentTransition = decodedValue;
-            model.transitions[currentTransition] = { role: "default"} as TransitionData;
+            model.transitions[currentTransition] = {} as TransitionData;
         } else if (key === 'source') {
             currentPlace = null;
             currentTransition = null;
@@ -121,7 +121,13 @@ function importFromUrl(url: string): any {
             model.arcs[currentArc as number].target = decodedValue;
         } else if (currentArc && model.arcs[currentArc]) {
             // @ts-ignore
-            model.arcs[currentArc][key as keyof ArcData] = isNaN(Number(decodedValue)) ? decodedValue : Number(decodedValue);
+            if (key === 'inhibit') {
+                // @ts-ignore
+                model.arcs[currentArc].inhibit = decodedValue === 'true';
+            } else {
+                // @ts-ignore
+                model.arcs[currentArc][key as keyof ArcData] = isNaN(Number(decodedValue)) ? decodedValue : Number(decodedValue);
+            }
         } else if (currentPlace && model.places[currentPlace]) {
             // @ts-ignore
             model.places[currentPlace][key as keyof PlaceData] = isNaN(Number(decodedValue)) ? decodedValue : Number(decodedValue);
