@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 
-var model = {
+const model = {
     "modelType": "petriNet",
     "version": "v0",
     "places": {
@@ -21,9 +21,17 @@ var model = {
         {"source": "place0", "target": "txn3", "inhibit": true},
         {"source": "txn3", "target": "place1"}
     ]
+} as Model
+
+type Model = {
+    modelType: string;
+    version: string;
+    places: Record<string, Place>;
+    transitions: Record<string, Transition>;
+    arcs: Array<Arrow>;
 }
 
-type PlaceData = {
+type Place = {
     offset: number;
     initial?: number;
     capacity?: number;
@@ -31,14 +39,14 @@ type PlaceData = {
     y: number;
 };
 
-type TransitionData = {
+type Transition = {
     offset?: number;
     role?: string;
     x: number;
     y: number;
 };
 
-type ArcData = {
+type Arrow = {
     source: string;
     target: string;
     weight?: number;
@@ -51,14 +59,14 @@ function exportAsUrl(model: any): string {
     params.append('modelType', model.modelType);
     params.append('version', model.version);
 
-    for (const [placeName, placeData] of Object.entries(model.places as Record<string, PlaceData>)) {
+    for (const [placeName, placeData] of Object.entries(model.places as Record<string, Place>)) {
         params.append('place', placeName);
         for (const [key, value] of Object.entries(placeData)) {
             params.append(key, value.toString());
         }
     }
 
-    for (const [transitionName, transitionData] of Object.entries(model.transitions as Record<string, TransitionData>)) {
+    for (const [transitionName, transitionData] of Object.entries(model.transitions as Record<string, Transition>)) {
         params.append('transition', transitionName);
         for (const [key, value] of Object.entries(transitionData)) {
             params.append(key, value.toString());
@@ -75,17 +83,17 @@ function exportAsUrl(model: any): string {
     return `?${params.toString()}`;
 }
 
-function importFromUrl(url: string): any {
+function importFromUrl(url: string): Model {
     const queryString = url.split('?')[1];
     const params = queryString.split('&');
 
     const model = {
         modelType: '',
         version: '',
-        places: {} as Record<string, PlaceData>,
-        transitions: {} as Record<string, TransitionData>,
-        arcs: [] as Array<ArcData>
-    };
+        places: {} as Record<string, Place>,
+        transitions: {} as Record<string, Transition>,
+        arcs: [] as Array<Arrow>
+    } as Model;
 
     let currentPlace: string | null = null;
     let currentTransition: string | null = null;
@@ -103,12 +111,12 @@ function importFromUrl(url: string): any {
             currentTransition = null;
             currentArc = null;
             currentPlace = decodedValue;
-            model.places[currentPlace] = {initial: 0, capacity: 0 } as PlaceData;
+            model.places[currentPlace] = {initial: 0, capacity: 0 } as Place;
         } else if (key === 'transition') {
             currentPlace = null;
             currentArc = null;
             currentTransition = decodedValue;
-            model.transitions[currentTransition] = {} as TransitionData;
+            model.transitions[currentTransition] = {} as Transition;
         } else if (key === 'source') {
             currentPlace = null;
             currentTransition = null;
@@ -126,14 +134,14 @@ function importFromUrl(url: string): any {
                 model.arcs[currentArc].inhibit = decodedValue === 'true';
             } else {
                 // @ts-ignore
-                model.arcs[currentArc][key as keyof ArcData] = isNaN(Number(decodedValue)) ? decodedValue : Number(decodedValue);
+                model.arcs[currentArc][key as keyof Arrow] = isNaN(Number(decodedValue)) ? decodedValue : Number(decodedValue);
             }
         } else if (currentPlace && model.places[currentPlace]) {
             // @ts-ignore
-            model.places[currentPlace][key as keyof PlaceData] = isNaN(Number(decodedValue)) ? decodedValue : Number(decodedValue);
+            model.places[currentPlace][key as keyof Place] = isNaN(Number(decodedValue)) ? decodedValue : Number(decodedValue);
         } else if (currentTransition && model.transitions[currentTransition]) {
             // @ts-ignore
-            model.transitions[currentTransition][key as keyof TransitionData] = isNaN(Number(decodedValue)) ? decodedValue : Number(decodedValue);
+            model.transitions[currentTransition][key as keyof Transition] = isNaN(Number(decodedValue)) ? decodedValue : Number(decodedValue);
         } else {
             console.error("unknown", {key, value, decodedValue})
         }
@@ -144,32 +152,33 @@ function importFromUrl(url: string): any {
 
 var imported = null;
 
-function toBase64(model: any): string {
+function toBase64(model: Model): string {
     return btoa(JSON.stringify(model))
 }
 
-function toImage(model: any): string {
+function toImage(model: Model): string {
     return 'https://pflow.dev/img/?b=' + toBase64(model)
 }
 
-function toUrl(model: any): string {
+function toUrl(model: Model): string {
     return 'https://pflow.dev/?b=' + toBase64(model)
 }
 
-function EmbeddedImport() {
+function EmbeddedImport(): React.ReactElement {
     if (!window.location.search) {
         return <React.Fragment/>
     }
     imported = importFromUrl(window.location.search);
-    console.log("importing from url")
-    console.log(JSON.stringify(imported));
+    // console.log("importing from url")
+    // console.log(JSON.stringify(imported));
 
     return <foreignObject x="600" y="0" width="500" height="500">
         <a href={toUrl(imported)} target="_blank" rel="noreferrer">
             <img src={toImage(imported)} alt="test"/>
         </a>
+        <br />
         <a href={exportAsUrl(imported)}>
-            Url-encoded model
+            Re-encoded Url model
         </a>
     </foreignObject>
 
@@ -178,12 +187,13 @@ function EmbeddedImport() {
 function App() {
     return (
         <svg width={1500} height={500} viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
-            <foreignObject x="0" y="0" width="500" height="500">
+            <foreignObject x="100" y="0" width="500" height="500">
                 <a href={toUrl(model)} target="_blank" rel="noreferrer">
                     <img src={toImage(model)} alt="test"/>
                 </a>
+                <a href={"?"}> Back &lt;- </a> <br />< br/>
                 <a href={exportAsUrl(model)}>
-                    Url-encoded model
+                    Url-encoded model -&gt;
                 </a>
             </foreignObject>
             <EmbeddedImport/>
