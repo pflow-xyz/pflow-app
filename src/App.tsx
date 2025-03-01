@@ -357,11 +357,6 @@ function EmbeddedImport(): React.ReactElement {
 }
 
 function App() {
-    var minUrl = exportAsMinUrl(model);
-    // add newlines before each place, transition, and arc
-    minUrl = minUrl.replaceAll("&p=", "\n\n&p=");
-    minUrl = minUrl.replaceAll("&t=", "\n\n&t=");
-    minUrl = minUrl.replaceAll("&s=", "\n\n&s=");
     return (
         <svg width={1500} height={1000} viewBox="0 0 1500 1000" xmlns="http://www.w3.org/2000/svg">
             <foreignObject x="100" y="0" width="1500" height="1000">
@@ -378,7 +373,6 @@ function App() {
                 <a href={exportAsMinUrl(model)}>
                     MinUrl-encoded model -&gt;
                 </a>
-                <pre>{minUrl}</pre>
             </foreignObject>
             <EmbeddedImport/>
         </svg>
