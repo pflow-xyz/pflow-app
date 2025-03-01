@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Petri Net Model</title>
+    <title>pflow | metamodel</title>
 </head>
 <body>
 <div id="model-container"></div>
@@ -16,19 +16,19 @@
         arcs: []
     };
 
-    function toBase64(model) {
+    function toBase64() {
         return btoa(JSON.stringify(model));
     }
 
-    function toImage(model) {
+    function toImage() {
         return 'https://pflow.dev/img/?b=' + toBase64(model);
     }
 
-    function toUrl(model) {
+    function toUrl() {
         return 'https://pflow.dev/?b=' + toBase64(model);
     }
 
-    function exportAsUrl(model) {
+    function exportAsUrl() {
         const params = new URLSearchParams();
         params.append('m', model.modelType);
         params.append('v', model.version);
@@ -160,13 +160,12 @@
     }
 
     importFromMinUrl()
-
     const el = document.getElementById('model-container');
     el.innerHTML = `
-        <a href="${exportAsUrl(model)}">permalink</a>
+        <a href="${exportAsUrl()}">permalink</a>
         <br/><br/>
-        <a href="${toUrl(model)}" target="_blank">
-            <img src="${toImage(model)}" alt="Petri Net Model" style="max-width: 600px;">
+        <a href="${toUrl()}" target="_blank">
+            <img src="${toImage()}" alt="Petri Net Model" style="max-width: 600px;">
         </a>
     `;
 </script>
