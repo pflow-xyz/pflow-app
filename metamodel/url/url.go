@@ -3,35 +3,85 @@ package url
 import (
 	"fmt"
 	"github.com/pflow-xyz/pflow-app/metamodel"
+	"io"
 	"net/url"
+	"sort"
 	"strconv"
+	"strings"
 )
 
-// creates a minified URL from a model
-func exportAsUrl(model metamodel.Model) string {
-	params := url.Values{}
+func NewBuilder() *urlBuilder {
+	var w strings.Builder
+	return &urlBuilder{Writer: &w}
+}
+
+type urlBuilder struct {
+	io.Writer
+}
+
+func (u *urlBuilder) Add(key, value string) {
+	fmt.Fprintf(u.Writer, "%s=%s&", key, value)
+}
+
+func (u *urlBuilder) Encode() string {
+	if sb, ok := u.Writer.(*strings.Builder); ok {
+		result := sb.String()
+		// Remove the trailing '&' if it exists
+		if len(result) > 0 && result[len(result)-1] == '&' {
+			result = result[:len(result)-1]
+		}
+		return result
+	}
+	return ""
+}
+
+func ExportAsUrl(model *metamodel.Model) string {
+
+	params := NewBuilder()
 	params.Add("m", model.ModelType)
-	params.Add("v", "0")
+	params.Add("v", model.Version)
+
+	// sorted place names
+	placeNames := make([]string, 0, len(model.Places))
+	{
+		for placeName := range model.Places {
+			placeNames = append(placeNames, placeName)
+		}
+		sort.Slice(placeNames, func(i, j int) bool {
+			return model.Places[placeNames[i]].Offset < model.Places[placeNames[j]].Offset
+		})
+	}
 
 	for placeName, placeData := range model.Places {
 		params.Add("p", placeName)
-		params.Add("o", strconv.Itoa(int(placeData.Offset)))
-		params.Add("i", strconv.Itoa(int(placeData.Initial)))
-		params.Add("c", strconv.Itoa(int(placeData.Capacity)))
-		params.Add("x", strconv.Itoa(int(placeData.X)))
-		params.Add("y", strconv.Itoa(int(placeData.Y)))
+		params.Add("o", strconv.Itoa(placeData.Offset))
+		params.Add("i", placeData.Initial.String())
+		params.Add("c", placeData.Capacity.String())
+		params.Add("x", strconv.Itoa(placeData.X))
+		params.Add("y", strconv.Itoa(placeData.Y))
 	}
 
-	for transitionName, transitionData := range model.Transitions {
+	transitionNames := make([]string, 0, len(model.Transitions))
+	{ // sorted transition names
+		for transitionName := range model.Transitions {
+			transitionNames = append(transitionNames, transitionName)
+		}
+		sort.Slice(transitionNames, func(i, j int) bool {
+			return transitionNames[i] < transitionNames[j]
+		})
+	}
+
+	for _, transitionName := range transitionNames {
 		params.Add("t", transitionName)
-		params.Add("x", strconv.Itoa(int(transitionData.X)))
-		params.Add("y", strconv.Itoa(int(transitionData.Y)))
+		params.Add("x", strconv.Itoa(model.Transitions[transitionName].X))
+		params.Add("y", strconv.Itoa(model.Transitions[transitionName].Y))
 	}
 
+	// arcs are in natural order
 	for _, arc := range model.Arrows {
-		params.Add("s", arc.Source) // FIXME: get string
+		params.Add("s", arc.Source)
 		params.Add("e", arc.Target)
-		params.Add("w", strconv.Itoa(arc.Weight))
+		params.Add("w", arc.Weight.String())
 		if arc.Inhibit {
 			params.Add("n", "1")
 		}
@@ -40,8 +90,7 @@ func exportAsUrl(model metamodel.Model) string {
 	return "?" + params.Encode()
 }
 
-// imports a model from a minified URL
-func importFromMinUrl(model *metamodel.Model, urlString string) {
+func ImportFromUrl(model *metamodel.Model, urlString string) {
 	parsedUrl, err := url.Parse(urlString)
 	if err != nil {
 		fmt.Println("Error parsing URL:", err)
@@ -51,7 +100,7 @@ func importFromMinUrl(model *metamodel.Model, urlString string) {
 	params := parsedUrl.Query()
 	var currentPlace string
 	var currentTransition string
-	var currentArc int
+	var currentArc = -1
 
 	for key, values := range params {
 		for _, value := range values {
@@ -73,16 +122,14 @@ func importFromMinUrl(model *metamodel.Model, urlString string) {
 				}
 			case "i":
 				if currentPlace != "" {
-					initial, _ := strconv.Atoi(decodedValue)
 					place := model.Places[currentPlace]
-					place.Initial = initial
+					place.Initial = metamodel.TokenFromString(decodedValue)
 					model.Places[currentPlace] = place
 				}
 			case "c":
 				if currentPlace != "" {
-					capacity, _ := strconv.Atoi(decodedValue)
 					place := model.Places[currentPlace]
-					place.Capacity = capacity
+					place.Capacity = metamodel.TokenFromString(decodedValue)
 					model.Places[currentPlace] = place
 				}
 			case "x":
@@ -132,9 +179,8 @@ func importFromMinUrl(model *metamodel.Model, urlString string) {
 				}
 			case "w":
 				if currentArc != -1 {
-					weight, _ := strconv.Atoi(decodedValue)
 					arc := model.Arrows[currentArc]
-					arc.Weight = weight
+					arc.Weight = metamodel.TokenFromString(decodedValue)
 					model.Arrows[currentArc] = arc
 				}
 			}
