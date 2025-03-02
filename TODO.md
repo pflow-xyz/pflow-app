@@ -1,20 +1,18 @@
+build of app.pflow.dev - no wallet connector - minimal build/viewer
+
 WIP
 ---
-build of app.pflow.dev - no wallets - minimal build/viewer
+- [ ] install new minURL format + convert to cid
+- [ ] refactor SVG generation to be dark-mode compatible i.e. don't assume white background
 
-- [ ] can we present on canvas?
-- [ ] develop a URL format ?modelType=petriNet
-
-http://localhost:3000/
-
-?modelType=petriNet
-&version=v0
-&place=place0&offset=0&initial=1&capacity=3&x=130&y=207
-&transition=txn0&x=46&y=116
-&transition=txn1&x=227&y=112
-&transition=txn2&x=43&y=307
-&transition=txn3&x=235&y=306
-&source=txn0&target=place0
-&source=place0&target=txn1&weight=3
-&source=txn2&target=place0&weight=3&inhibit=true
-&source=place0&target=txn3&inhibit=true
+BACKLOG
+-------
+- [ ] can we present on canvas? try out zoom/in out
+- [ ] should we stick w/ SVG? - do we even need react?
+- [ ] find a better way to nest the UI rather than embedding in code
+- [ ] add new sqlite storage
+- [ ] backport to pflow.xyz - consider how to store legacy petri-net data to make it compatible with minURL
+ 
+DONE
+----
+- [x] develop a URL format ?m=petriNet
