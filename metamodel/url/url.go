@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func NewBuilder() *urlBuilder {
+func newBuilder() *urlBuilder {
 	var w strings.Builder
 	return &urlBuilder{Writer: &w}
 }
@@ -19,6 +19,7 @@ type urlBuilder struct {
 	io.Writer
 }
 
+// Add adds a key-value pair to the URL
 func (u *urlBuilder) Add(key, value string) {
 	fmt.Fprintf(u.Writer, "%s=%s&", key, value)
 }
@@ -37,7 +38,7 @@ func (u *urlBuilder) Encode() string {
 
 func ExportAsUrl(model *metamodel.Model) string {
 
-	params := NewBuilder()
+	params := newBuilder()
 	params.Add("m", model.ModelType)
 	params.Add("v", model.Version)
 

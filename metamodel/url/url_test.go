@@ -48,7 +48,7 @@ func TestExportAsUrl(t *testing.T) {
 	model := &exampleModel
 	urlString := url.ExportAsUrl(model)
 	if urlString != exampleUrl {
-		t.Errorf("Missmatch:  |%v|", urlString)
+		t.Errorf("Expected %v, \ngot %v", exampleUrl, urlString)
 	}
 }
 

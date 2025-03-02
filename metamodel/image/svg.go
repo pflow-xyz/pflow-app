@@ -1,244 +1,231 @@
 package image
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/pflow-xyz/pflow-app/metamodel"
-	"io"
-	"math"
-	"os"
+	"strconv"
 )
 
-type SvgImage struct {
-	model     metamodel.Model
-	width     int
-	height    int
-	writerOut io.Writer
-	onClose   func()
+func ExportAsSvg(model *metamodel.Model) string {
+	img := newImage(model)
+	img.NewSvgImage()
+	img.Render()
+	return img.Buffer
 }
 
-func NewSvgFile(outputPath string, xy ...int) *SvgImage {
-	f, err := os.Create(outputPath)
-	if err != nil {
-		panic(err)
+// svgImage represents the Svg display of the Petri net model.
+type svgImage struct {
+	Buffer string
+	Model  *metamodel.Model
+	State  map[string]metamodel.Token
+}
+
+// newImage creates a new display for the given Petri net model and state.
+func newImage(model *metamodel.Model, state ...map[string]metamodel.Token) svgImage {
+	if len(state) == 1 {
+		return svgImage{Model: model, State: state[0]}
 	}
-	w := bufio.NewWriter(f)
-	i := NewSvg(w, xy...)
-	i.onClose = func() {
-		err := w.Flush()
-		if err != nil {
-			panic(err)
+	return svgImage{Model: model, State: make(map[string]metamodel.Token)}
+}
+
+// getViewPort calculates the viewport dimensions for the Petri net model.
+func (img *svgImage) getViewPort() (x1 int, y1 int, width int, height int) {
+	var minX int = 0
+	var minY int = 0
+	var limitX int = 0
+	var limitY int = 0
+
+	for _, p := range img.Model.Places {
+		if limitX < p.X {
+			limitX = p.X
+		}
+		if limitY < p.Y {
+			limitY = p.Y
+		}
+		if minX == 0 || minX > p.X {
+			minX = p.X
+		}
+		if minY == 0 || minY > p.Y {
+			minY = p.Y
 		}
 	}
-	return i
-}
-
-func NewSvg(out io.Writer, xy ...int) *SvgImage {
-	i := new(SvgImage)
-	i.writerOut = out
-	return i.newSvgImage(xy...)
-}
-
-func (i *SvgImage) newSvgImage(xy ...int) *SvgImage {
-	if len(xy) >= 2 {
-		i.width = xy[0]
-		i.height = xy[1]
-	} else {
-		i.width = 1024
-		i.height = 768
-	}
-	if len(xy) == 6 {
-		i.writerOut.Write([]byte(fmt.Sprintf("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%v\" height=\"%v\" viewBox=\"%v %v %v %v\">\n", xy[0], xy[1], xy[2], xy[3], xy[4], xy[5])))
-	} else {
-		i.writerOut.Write([]byte(fmt.Sprintf("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%v\" height=\"%v\" >\n", i.width, i.height)))
-	}
-	i.Rect(0, 0, i.width, i.height, `fill="#ffffff"`)
-
-	i.writerOut.Write([]byte(
-		`<defs><marker id="markerArrow1" markerWidth="23" markerHeight="13" refX="31" refY="6" orient="auto">` +
-			`<rect width="28" height="3" fill="white" stroke="white" x="3" y="5"/><path d="M2,2 L2,11 L10,6 L2,2"/></marker>` +
-			`<marker id="markerInhibit1" markerWidth="23" markerHeight="13" refX="31" refY="6" orient="auto">` +
-			`<rect width="28" height="3" fill="white" stroke="white" x="3" y="5"/><circle cx="5" cy="6.5" r="4"/></marker></defs>` +
-			"\n"))
-	return i
-}
-
-func (i *SvgImage) End() {
-	i.writerOut.Write([]byte("</svg>"))
-}
-
-func (i *SvgImage) Rect(x int, y int, width int, height int, extra string) {
-	i.writerOut.Write([]byte(fmt.Sprintf(`<rect x="%v" y="%v" width="%v" height="%v" %s />`, x, y, width, height, extra)))
-}
-
-func (i *SvgImage) Circle(x int, y int, radius int, extra string) {
-	i.writerOut.Write([]byte(fmt.Sprintf(`<circle cx="%v" cy="%v" r="%v" %s />`, x, y, radius, extra)))
-}
-
-func (i *SvgImage) Text(x int, y int, text string, extra string) {
-	i.writerOut.Write([]byte(fmt.Sprintf(`<text x="%v" y="%v" %s>%s</text>`, x, y, extra, text)))
-}
-
-func (i *SvgImage) Path(path string) {
-	i.writerOut.Write([]byte(fmt.Sprintf(`<path d="%s" />`, path)))
-}
-
-func (i *SvgImage) Line(x1 int, y1 int, x2 int, y2 int, extra string) {
-	i.writerOut.Write([]byte(fmt.Sprintf("<line x1=\"%v\" y1=\"%v\" x2=\"%v\" y2=\"%v\" %s />\n", x1, y1, x2, y2, extra)))
-}
-
-func (i *SvgImage) Group() {
-	i.writerOut.Write([]byte("<g>\n"))
-}
-func (i *SvgImage) Gend() {
-	i.writerOut.Write([]byte("\n</g>\n"))
-}
-
-func (i *SvgImage) MarkerEnd() {
-	i.writerOut.Write([]byte("</marker>\n"))
-}
-func (i *SvgImage) Render(m metamodel.MetaModel, initialVectors ...metamodel.Vector) {
-	net := m.Net()
-	// FIXME: get rid of state-machine
-	i.stateMachine = vasm.Execute(m.Net(), initialVectors...)
-	for _, a := range net.Arcs {
-		i.arc(a)
-	}
-	for _, p := range net.Places {
-		i.place(p)
-	}
-	for _, t := range net.Transitions {
-		i.transition(t)
-	}
-	i.End()
-	if i.onClose != nil {
-		i.onClose()
-	}
-}
-
-func (i *SvgImage) place(place *metamodel.Place) {
-	i.Group()
-	i.Circle(int(place.X), int(place.Y), 16, `strokeWidth="1.5" fill="#ffffff" stroke="#000000" orient="0" shapeRendering="auto"`)
-	i.Text(int(place.X)-18, int(place.Y)-20, place.Label, `font-size="small"`)
-	x := int(place.X)
-	y := int(place.Y)
-
-	tokens := i.stateMachine.TokenCount(place.Label)
-	if tokens > 0 {
-		if tokens == 1 {
-			i.Circle(x, y, 2, `fill="#000000" stroke="#000000" orient="0" className="tokens"`)
-		} else if tokens < 10 {
-			i.Text(x-4, y+5, fmt.Sprintf("%v", tokens), `font-size="large"`)
-		} else if tokens >= 10 {
-			i.Text(x-7, y+5, fmt.Sprintf("%v", tokens), `font-size="small"`)
+	for _, t := range img.Model.Transitions {
+		if limitX < t.X {
+			limitX = t.X
+		}
+		if limitY < t.Y {
+			limitY = t.Y
+		}
+		if minX == 0 || minX > t.X {
+			minX = t.X
+		}
+		if minY == 0 || minY > t.Y {
+			minY = t.Y
 		}
 	}
-	i.Gend()
+	const margin = 60
+	x1 = minX - margin
+	y1 = minY - margin
+	x2 := limitX + margin
+	y2 := limitY + margin
+
+	return x1, y1, x2 - x1, y2 - y1
 }
 
-func (i *SvgImage) arc(arc metamodel.Arrow) {
-	i.Group()
+// NewSvgImage creates a new Svg image for the Petri net model
+func (img *svgImage) NewSvgImage() {
+	x1, y1, width, height := img.getViewPort()
+	img.Buffer += fmt.Sprintf("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%v\" height=\"%v\" viewBox=\"%v %v %v %v\">", width, height, x1, y1, width, height)
+	img.Rect(0, 0, width, height+60, "fill=\"#ffffff\"")
+	img.WriteDefs()
+}
 
-	var (
-		y1     int64 = 0
-		x1     int64 = 0
-		y2     int64 = 0
-		x2     int64 = 0
-		weight int64 = 0
-		marker       = "url(#markerArrow1)"
-	)
-	if arc.Inhibitor {
+// WriteDefs writes the Svg definitions for the display.
+func (img *svgImage) WriteDefs() {
+	img.Buffer += "<defs>" +
+		"<marker id=\"markerArrow1\" markerWidth=\"23\" markerHeight=\"13\" refX=\"31\" refY=\"6\" orient=\"auto\">" +
+		"<rect width=\"28\" height=\"3\" fill=\"white\" stroke=\"white\" x=\"3\" y=\"5\"/>" +
+		"<path d=\"M2,2 L2,11 L10,6 L2,2\"/>" +
+		"</marker>" +
+		"<marker id=\"markerInhibit1\" markerWidth=\"23\" markerHeight=\"13\" refX=\"31\" refY=\"6\" orient=\"auto\">" +
+		"<rect width=\"28\" height=\"3\" fill=\"white\" stroke=\"white\" x=\"3\" y=\"5\"/>" +
+		"<circle cx=\"5\" cy=\"6.5\" r=\"4\"/>" +
+		"</marker>" +
+		"</defs>"
+}
+
+// Group starts a new group in the Svg.
+func (img *svgImage) Gend() {
+	img.WriteElement("</g>")
+}
+
+// WriteElement writes an element to the Svg buffer.
+func (img *svgImage) WriteElement(element string) {
+	img.Buffer += element
+}
+
+// Render renders the Petri net model to Svg.
+func (img *svgImage) Render() {
+	for _, arc := range img.Model.Arrows {
+		img.ArcElement(arc)
+	}
+	for label, place := range img.Model.Places {
+		img.PlaceElement(label, place)
+	}
+	for label, transition := range img.Model.Transitions {
+		img.TransitionElement(label, transition)
+	}
+	img.EndSvg()
+}
+
+// PlaceElement renders a place element in the Svg.
+func (img *svgImage) PlaceElement(label string, place metamodel.Place) {
+	img.Group()
+	img.Circle(place.X, place.Y, 16, "stroke-width=\"1.5\" fill=\"#ffffff\" stroke=\"#000000\"")
+	img.Text(place.X-18, place.Y-20, label, "font-size=\"small\"")
+	x := place.X
+	y := place.Y
+	tokens := place.Initial
+	if state, ok := img.State[label]; ok {
+		tokens = state
+	}
+	if tokens.Value > 0 {
+		if tokens.Value == 1 {
+			img.Circle(x, y, 2, "fill=\"#000000\" stroke=\"#000000\"")
+		} else if tokens.Value < 10 {
+			img.Text(x-4, y+5, tokens.String(), "font-size=\"large\"")
+		} else {
+			img.Text(x-7, y+5, tokens.String(), "font-size=\"small\"")
+		}
+	}
+	img.Gend()
+}
+
+// ArcElement renders an arc element in the Svg.
+func (img *svgImage) ArcElement(arc metamodel.Arrow) {
+	img.Group()
+	marker := "url(#markerArrow1)"
+	if arc.Inhibit {
 		marker = "url(#markerInhibit1)"
-		if arc.Target.IsTransition() {
-			p := arc.Source.GetPlace()
-			t := arc.Target.GetTransition()
-			g, ok := t.Guards[p.Label]
-			if !ok {
-				panic("missing guard: " + p.Label)
-			}
-			weight = g.Delta[p.Offset]
+	}
+	extra := "stroke=\"#000000\" fill=\"#000000\" marker-end=\"" + marker + "\""
+
+	var p metamodel.Place
+	var t metamodel.Transition
+	if arc.Inhibit {
+		if place, ok := img.Model.Places[arc.Source]; ok {
+			p = place
+			t = img.Model.Transitions[arc.Target]
 		} else {
-			p := arc.Target.GetPlace()
-			t := arc.Source.GetTransition()
-			g, ok := t.Guards[p.Label]
-			if !ok {
-				panic("missing guard: " + p.Label)
-			}
-			weight = g.Delta[p.Offset]
+			p = img.Model.Places[arc.Target]
+			t = img.Model.Transitions[arc.Source]
 		}
 	} else {
-		if arc.Source.IsTransition() {
-			t := arc.Source.GetTransition()
-			p := arc.Target.GetPlace()
-			weight = t.Delta[p.Offset]
-		} else if arc.Target.IsTransition() {
-			p := arc.Source.GetPlace()
-			t := arc.Target.GetTransition()
-			weight = t.Delta[p.Offset]
+		if place, ok := img.Model.Places[arc.Source]; ok {
+			p = place
+			t = img.Model.Transitions[arc.Target]
 		} else {
-			panic("invalid arc")
+			p = img.Model.Places[arc.Target]
+			t = img.Model.Transitions[arc.Source]
 		}
 	}
-	if arc.Source.IsPlace() {
-		p := arc.Source.GetPlace()
-		y1 = p.Y
-		x1 = p.X
-		t := arc.Target.GetTransition()
-		y2 = t.Y
-		x2 = t.X
-	} else if arc.Source.IsTransition() {
-		t := arc.Source.GetTransition()
-		y1 = t.Y
-		x1 = t.X
-		p := arc.Target.GetPlace()
-		y2 = p.Y
-		x2 = p.X
+
+	if place, ok := img.Model.Places[arc.Source]; ok {
+		p = place
+		t = img.Model.Transitions[arc.Target]
+		img.Line(p.X, p.Y, t.X, t.Y, extra)
+		midX := (p.X + t.X) / 2
+		midY := (p.Y+t.Y)/2 - 8
+		weight := arc.Weight
+		img.Text(midX-4, midY+4, weight.String(), "font-size=\"small\"")
 	} else {
-		panic("invalid arc declaration")
+		p = img.Model.Places[arc.Target]
+		t = img.Model.Transitions[arc.Source]
+		img.Line(t.X, t.Y, p.X, p.Y, extra)
+		midX := (t.X + p.X) / 2
+		midY := (t.Y+p.Y)/2 - 8
+		weight := arc.Weight
+		img.Text(midX-4, midY+4, weight.String(), "font-size=\"small\"")
 	}
-
-	var midX = (x2 + x1) / 2
-	var midY = (y2+y1)/2 - 8
-	var offsetX int64 = 4
-	var offsetY int64 = 4
-
-	if math.Abs(float64(x2-midX)) < 8 {
-		offsetX = 8
-	}
-
-	if math.Abs(float64(x2-midY)) < 8 {
-		offsetY = 0
-	}
-
-	if weight < 0 {
-		weight = 0 - weight
-	}
-
-	i.Line(int(x1), int(y1), int(x2), int(y2), `stroke="#000000" marker-end="`+marker+`"`)
-	i.Text(int(midX-offsetX), int(midY+offsetY), fmt.Sprintf("%v", weight), `font-size="small"`)
-	i.Gend()
+	img.Gend()
 }
 
-func (i *SvgImage) transition(transition *metamodel.Transition) {
-	i.Group()
+// TransitionElement renders a transition element in the Svg.
+func (img *svgImage) TransitionElement(label string, transition metamodel.Transition) {
+	img.Group()
+	x := transition.X - 17
+	y := transition.Y - 17
+	img.Rect(x, y, 30, 30, "stroke=\"#000000\" fill=\"#ffffff\" rx=\"4\"")
+	img.Text(x, y-8, label, "font-size=\"small\"")
+	img.Gend()
+}
 
-	op := metamodel.Op{Action: transition.Label, Multiple: 1, Role: transition.Role.Label}
+// EndSvg ends the Svg image.
+func (img *svgImage) EndSvg() {
+	img.Buffer += "</svg>"
+}
 
-	var fill = "#ffffff"
-	{
-		valid, _, _ := i.stateMachine.TestFire(op)
-		inhibited, _ := i.stateMachine.Inhibited(op)
+// Rect draws a rectangle in the Svg.
+func (img *svgImage) Rect(x, y, width, height int, extra string) {
+	img.WriteElement("<rect x=\"" + strconv.Itoa(x) + "\" y=\"" + strconv.Itoa(y) + "\" width=\"" + strconv.Itoa(width) + "\" height=\"" + strconv.Itoa(height) + "\" " + extra + " />")
+}
 
-		if !valid && inhibited {
-			fill = "#fab5b0"
-		} else if valid {
-			fill = "#62fa75"
-		}
-	}
+// Circle draws a circle in the Svg.
+func (img *svgImage) Circle(x, y, radius int, extra string) {
+	img.WriteElement("<circle cx=\"" + strconv.Itoa(x) + "\" cy=\"" + strconv.Itoa(y) + "\" r=\"" + strconv.Itoa(radius) + "\" " + extra + " />")
+}
 
-	x := int(transition.X - 17)
-	y := int(transition.Y - 17)
-	i.Rect(x, y, 30, 30, `stroke="#000000" fill="`+fill+`" rx="4"`)
-	i.Text(x, y-8, transition.Label, `font-size="small"`)
-	i.Gend()
+// Text draws text in the Svg.
+func (img *svgImage) Text(x, y int, txt, extra string) {
+	img.WriteElement("<text x=\"" + strconv.Itoa(x) + "\" y=\"" + strconv.Itoa(y) + "\" " + extra + ">" + txt + "</text>")
+}
+
+// Line draws a line in the Svg.
+func (img *svgImage) Line(x1, y1, x2, y2 int, extra string) {
+	img.WriteElement("<line x1=\"" + strconv.Itoa(x1) + "\" y1=\"" + strconv.Itoa(y1) + "\" x2=\"" + strconv.Itoa(x2) + "\" y2=\"" + strconv.Itoa(y2) + "\" " + extra + " />")
+}
+
+// Group starts a new group in the Svg.
+func (img *svgImage) Group() {
+	img.WriteElement("<g>")
 }
