@@ -1,6 +1,7 @@
 package url_test
 
 import (
+	"fmt"
 	"github.com/pflow-xyz/pflow-app/metamodel"
 	"github.com/pflow-xyz/pflow-app/metamodel/url"
 	"strings"
@@ -50,9 +51,11 @@ func TestExportAsUrl(t *testing.T) {
 	if urlString != exampleUrl {
 		t.Errorf("Expected %v, \ngot %v", exampleUrl, urlString)
 	}
+	println(model.ToJson())
 }
 
 func TestImportFromUrl(t *testing.T) {
+	fmt.Printf("exampleUrl: http://127.0.0.1:8080/img/%v\n", exampleUrl)
 	model := metamodel.NewModel()
 	url.ImportFromUrl(model, exampleUrl)
 
@@ -70,5 +73,4 @@ func TestImportFromUrl(t *testing.T) {
 	if len(model.Transitions) != 4 {
 		t.Errorf("Expected 4 transitions, got %v", len(model.Transitions))
 	}
-
 }

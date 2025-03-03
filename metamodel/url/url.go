@@ -21,7 +21,10 @@ type urlBuilder struct {
 
 // Add adds a key-value pair to the URL
 func (u *urlBuilder) Add(key, value string) {
-	fmt.Fprintf(u.Writer, "%s=%s&", key, value)
+	_, err := fmt.Fprintf(u.Writer, "%s=%s&", key, value)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (u *urlBuilder) Encode() string {
@@ -37,7 +40,6 @@ func (u *urlBuilder) Encode() string {
 }
 
 func ExportAsUrl(model *metamodel.Model) string {
-
 	params := newBuilder()
 	params.Add("m", model.ModelType)
 	params.Add("v", model.Version)
@@ -92,98 +94,104 @@ func ExportAsUrl(model *metamodel.Model) string {
 }
 
 func ImportFromUrl(model *metamodel.Model, urlString string) {
-	parsedUrl, err := url.Parse(urlString)
-	if err != nil {
-		fmt.Println("Error parsing URL:", err)
+	parts := strings.Split(urlString, "?")
+	if len(parts) < 2 {
 		return
 	}
 
-	params := parsedUrl.Query()
+	queryString := parts[1]
+	params := strings.Split(queryString, "&")
+
 	var currentPlace string
 	var currentTransition string
 	var currentArc = -1
 
-	for key, values := range params {
-		for _, value := range values {
-			decodedValue, _ := url.QueryUnescape(value)
-			switch key {
-			case "m":
-				model.ModelType = decodedValue
-			case "v":
-				model.Version = decodedValue
-			case "p":
-				currentPlace = decodedValue
-				model.Places[currentPlace] = metamodel.Place{}
-			case "o":
-				if currentPlace != "" {
-					offset, _ := strconv.Atoi(decodedValue)
-					place := model.Places[currentPlace]
-					place.Offset = offset
-					model.Places[currentPlace] = place
-				}
-			case "i":
-				if currentPlace != "" {
-					place := model.Places[currentPlace]
-					place.Initial = metamodel.TokenFromString(decodedValue)
-					model.Places[currentPlace] = place
-				}
-			case "c":
-				if currentPlace != "" {
-					place := model.Places[currentPlace]
-					place.Capacity = metamodel.TokenFromString(decodedValue)
-					model.Places[currentPlace] = place
-				}
-			case "x":
-				if currentPlace != "" {
-					x, _ := strconv.Atoi(decodedValue)
-					place := model.Places[currentPlace]
-					place.X = x
-					model.Places[currentPlace] = place
-				} else if currentTransition != "" {
-					x, _ := strconv.Atoi(decodedValue)
-					transition := model.Transitions[currentTransition]
-					transition.X = x
-					model.Transitions[currentTransition] = transition
-				}
-			case "y":
-				if currentPlace != "" {
-					y, _ := strconv.Atoi(decodedValue)
-					place := model.Places[currentPlace]
-					place.Y = y
-					model.Places[currentPlace] = place
-				} else if currentTransition != "" {
-					y, _ := strconv.Atoi(decodedValue)
-					transition := model.Transitions[currentTransition]
-					transition.Y = y
-					model.Transitions[currentTransition] = transition
-				}
-			case "t":
-				currentPlace = ""
-				currentTransition = decodedValue
-				model.Transitions[currentTransition] = metamodel.Transition{}
-			case "s":
-				currentPlace = ""
-				currentTransition = ""
-				currentArc = len(model.Arrows)
-				model.Arrows = append(model.Arrows, metamodel.Arrow{Source: decodedValue})
-			case "e":
-				if currentArc != -1 {
-					arc := model.Arrows[currentArc]
-					arc.Target = decodedValue
-					model.Arrows[currentArc] = arc
-				}
-			case "n":
-				if currentArc != -1 {
-					arc := model.Arrows[currentArc]
-					arc.Inhibit = decodedValue == "1"
-					model.Arrows[currentArc] = arc
-				}
-			case "w":
-				if currentArc != -1 {
-					arc := model.Arrows[currentArc]
-					arc.Weight = metamodel.TokenFromString(decodedValue)
-					model.Arrows[currentArc] = arc
-				}
+	for _, param := range params {
+		keyValue := strings.Split(param, "=")
+		if len(keyValue) != 2 {
+			continue
+		}
+		key := keyValue[0]
+		value := keyValue[1]
+		decodedValue, _ := url.QueryUnescape(value)
+
+		switch key {
+		case "m":
+			model.ModelType = decodedValue
+		case "v":
+			model.Version = decodedValue
+		case "p":
+			currentPlace = decodedValue
+			model.Places[currentPlace] = metamodel.Place{}
+		case "o":
+			if currentPlace != "" {
+				offset, _ := strconv.Atoi(decodedValue)
+				place := model.Places[currentPlace]
+				place.Offset = offset
+				model.Places[currentPlace] = place
+			}
+		case "i":
+			if currentPlace != "" {
+				place := model.Places[currentPlace]
+				place.Initial = metamodel.TokenFromString(decodedValue)
+				model.Places[currentPlace] = place
+			}
+		case "c":
+			if currentPlace != "" {
+				place := model.Places[currentPlace]
+				place.Capacity = metamodel.TokenFromString(decodedValue)
+				model.Places[currentPlace] = place
+			}
+		case "x":
+			if currentPlace != "" {
+				x, _ := strconv.Atoi(decodedValue)
+				place := model.Places[currentPlace]
+				place.X = x
+				model.Places[currentPlace] = place
+			} else if currentTransition != "" {
+				x, _ := strconv.Atoi(decodedValue)
+				transition := model.Transitions[currentTransition]
+				transition.X = x
+				model.Transitions[currentTransition] = transition
+			}
+		case "y":
+			if currentPlace != "" {
+				y, _ := strconv.Atoi(decodedValue)
+				place := model.Places[currentPlace]
+				place.Y = y
+				model.Places[currentPlace] = place
+			} else if currentTransition != "" {
+				y, _ := strconv.Atoi(decodedValue)
+				transition := model.Transitions[currentTransition]
+				transition.Y = y
+				model.Transitions[currentTransition] = transition
+			}
+		case "t":
+			currentPlace = ""
+			currentTransition = decodedValue
+			model.Transitions[currentTransition] = metamodel.Transition{}
+		case "s":
+			currentPlace = ""
+			currentTransition = ""
+			currentArc = len(model.Arrows)
+			model.Arrows = append(model.Arrows, metamodel.Arrow{Source: decodedValue})
+		case "e":
+			if currentArc != -1 {
+				arc := model.Arrows[currentArc]
+				arc.Target = decodedValue
+				model.Arrows[currentArc] = arc
+			}
+		case "n":
+			if currentArc != -1 {
+				arc := model.Arrows[currentArc]
+				arc.Inhibit = decodedValue == "1"
+				model.Arrows[currentArc] = arc
+			}
+		case "w":
+			if currentArc != -1 {
+				arc := model.Arrows[currentArc]
+				arc.Weight = metamodel.TokenFromString(decodedValue)
+				model.Arrows[currentArc] = arc
 			}
 		}
 	}
