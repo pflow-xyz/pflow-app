@@ -3,6 +3,7 @@ package metamodel_test
 import (
 	. "github.com/pflow-xyz/pflow-app/metamodel"
 	"github.com/pflow-xyz/pflow-app/metamodel/cid"
+	"strings"
 	"testing"
 )
 
@@ -29,7 +30,10 @@ var exampleModel = Model{
 }
 
 func TestImportFromJson(t *testing.T) {
-	json := exampleModel.ToJson()
+	var w strings.Builder
+	exampleModel.ToJson(&w)
+	json := w.String()
+	println(json)
 	model := NewModel()
 	importedModel, err := model.FromJson(json)
 	if err != nil {
@@ -39,11 +43,11 @@ func TestImportFromJson(t *testing.T) {
 	if len(importedModel.Places) != 2 {
 		t.Errorf("Expected 2 places, got %v", len(importedModel.Places))
 	}
-	if len(importedModel.Arrows) != 5 {
-		t.Errorf("Expected 5 arrows, got %v", len(importedModel.Arrows))
-	}
 	if len(importedModel.Transitions) != 4 {
 		t.Errorf("Expected 4 transitions, got %v", len(importedModel.Transitions))
+	}
+	if len(importedModel.Arrows) != 5 {
+		t.Errorf("Expected 5 arrows, got %v", len(importedModel.Arrows))
 	}
 
 	importedCid := cid.NewCid(importedModel).String()

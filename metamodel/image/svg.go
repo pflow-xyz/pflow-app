@@ -3,37 +3,37 @@ package image
 import (
 	"fmt"
 	"github.com/pflow-xyz/pflow-app/metamodel"
+	"io"
 	"strconv"
 )
 
-func ExportAsSvg(model *metamodel.Model) string {
-	img := newImage(model)
+func ExportAsSvg(model *metamodel.Model, writer io.Writer) {
+	img := newImage(model, writer)
 	img.NewSvgImage()
 	img.Render()
-	return img.Buffer
 }
 
 // svgImage represents the Svg display of the Petri net model.
 type svgImage struct {
-	Buffer string
+	Writer io.Writer
 	Model  *metamodel.Model
 	State  map[string]metamodel.Token
 }
 
 // newImage creates a new display for the given Petri net model and state.
-func newImage(model *metamodel.Model, state ...map[string]metamodel.Token) svgImage {
+func newImage(model *metamodel.Model, writer io.Writer, state ...map[string]metamodel.Token) svgImage {
 	if len(state) == 1 {
-		return svgImage{Model: model, State: state[0]}
+		return svgImage{Writer: writer, Model: model, State: state[0]}
 	}
-	return svgImage{Model: model, State: make(map[string]metamodel.Token)}
+	return svgImage{Writer: writer, Model: model, State: make(map[string]metamodel.Token)}
 }
 
 // getViewPort calculates the viewport dimensions for the Petri net model.
 func (img *svgImage) getViewPort() (x1 int, y1 int, width int, height int) {
-	var minX int = 0
-	var minY int = 0
-	var limitX int = 0
-	var limitY int = 0
+	var minX = 0
+	var minY = 0
+	var limitX = 0
+	var limitY = 0
 
 	for _, p := range img.Model.Places {
 		if limitX < p.X {
@@ -75,23 +75,23 @@ func (img *svgImage) getViewPort() (x1 int, y1 int, width int, height int) {
 // NewSvgImage creates a new Svg image for the Petri net model
 func (img *svgImage) NewSvgImage() {
 	x1, y1, width, height := img.getViewPort()
-	img.Buffer += fmt.Sprintf("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%v\" height=\"%v\" viewBox=\"%v %v %v %v\">", width, height, x1, y1, width, height)
+	fmt.Fprintf(img.Writer, "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%v\" height=\"%v\" viewBox=\"%v %v %v %v\">", width, height, x1, y1, width, height)
 	img.Rect(0, 0, width, height+60, "fill=\"#ffffff\"")
 	img.WriteDefs()
 }
 
 // WriteDefs writes the Svg definitions for the display.
 func (img *svgImage) WriteDefs() {
-	img.Buffer += "<defs>" +
-		"<marker id=\"markerArrow1\" markerWidth=\"23\" markerHeight=\"13\" refX=\"31\" refY=\"6\" orient=\"auto\">" +
-		"<rect width=\"28\" height=\"3\" fill=\"white\" stroke=\"white\" x=\"3\" y=\"5\"/>" +
-		"<path d=\"M2,2 L2,11 L10,6 L2,2\"/>" +
-		"</marker>" +
-		"<marker id=\"markerInhibit1\" markerWidth=\"23\" markerHeight=\"13\" refX=\"31\" refY=\"6\" orient=\"auto\">" +
-		"<rect width=\"28\" height=\"3\" fill=\"white\" stroke=\"white\" x=\"3\" y=\"5\"/>" +
-		"<circle cx=\"5\" cy=\"6.5\" r=\"4\"/>" +
-		"</marker>" +
-		"</defs>"
+	fmt.Fprint(img.Writer, "<defs>"+
+		"<marker id=\"markerArrow1\" markerWidth=\"23\" markerHeight=\"13\" refX=\"31\" refY=\"6\" orient=\"auto\">"+
+		"<rect width=\"28\" height=\"3\" fill=\"white\" stroke=\"white\" x=\"3\" y=\"5\"/>"+
+		"<path d=\"M2,2 L2,11 L10,6 L2,2\"/>"+
+		"</marker>"+
+		"<marker id=\"markerInhibit1\" markerWidth=\"23\" markerHeight=\"13\" refX=\"31\" refY=\"6\" orient=\"auto\">"+
+		"<rect width=\"28\" height=\"3\" fill=\"white\" stroke=\"white\" x=\"3\" y=\"5\"/>"+
+		"<circle cx=\"5\" cy=\"6.5\" r=\"4\"/>"+
+		"</marker>"+
+		"</defs>")
 }
 
 // Group starts a new group in the Svg.
@@ -99,9 +99,9 @@ func (img *svgImage) Gend() {
 	img.WriteElement("</g>")
 }
 
-// WriteElement writes an element to the Svg buffer.
+// WriteElement writes an element to the Svg writer.
 func (img *svgImage) WriteElement(element string) {
-	img.Buffer += element
+	fmt.Fprint(img.Writer, element)
 }
 
 // Render renders the Petri net model to Svg.
@@ -202,7 +202,7 @@ func (img *svgImage) TransitionElement(label string, transition metamodel.Transi
 
 // EndSvg ends the Svg image.
 func (img *svgImage) EndSvg() {
-	img.Buffer += "</svg>"
+	fmt.Fprint(img.Writer, "</svg>")
 }
 
 // Rect draws a rectangle in the Svg.

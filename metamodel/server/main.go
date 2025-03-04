@@ -9,20 +9,21 @@ import (
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// write as json
 		w.Header().Set("Content-Type", "application/json")
 		model := metamodel.NewModel()
 		url.ImportFromUrl(model, r.URL.String())
-		w.Write([]byte(model.ToJson()))
+		model.ToJson(w)
 	})
 
 	http.HandleFunc("/img/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/svg+xml")
 		model := metamodel.NewModel()
 		url.ImportFromUrl(model, r.URL.String())
-		svg := image.ExportAsSvg(model)
-		w.Write([]byte(svg))
+		image.ExportAsSvg(model, w)
 	})
 
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		println(err)
+	}
 }

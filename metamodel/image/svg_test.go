@@ -31,7 +31,9 @@ var exampleModel = metamodel.Model{
 
 func TestImage(t *testing.T) {
 	model := &exampleModel
-	svg := image.ExportAsSvg(model)
+	var w strings.Builder
+	image.ExportAsSvg(model, &w)
+	svg := w.String()
 	if strings.HasPrefix(svg, "<svg") == false {
 		t.Errorf("Expected svg, got %v", svg)
 	}

@@ -51,7 +51,9 @@ func TestExportAsUrl(t *testing.T) {
 	if urlString != exampleUrl {
 		t.Errorf("Expected %v, \ngot %v", exampleUrl, urlString)
 	}
-	println(model.ToJson())
+	var w strings.Builder
+	model.ToJson(&w)
+	t.Log(w.String())
 }
 
 func TestImportFromUrl(t *testing.T) {
