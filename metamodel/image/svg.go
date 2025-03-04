@@ -3,6 +3,7 @@ package image
 import (
 	"fmt"
 	"github.com/pflow-xyz/pflow-app/metamodel"
+	"github.com/pflow-xyz/pflow-app/metamodel/token"
 	"io"
 	"strconv"
 )
@@ -17,15 +18,15 @@ func ExportAsSvg(model *metamodel.Model, writer io.Writer) {
 type svgImage struct {
 	Writer io.Writer
 	Model  *metamodel.Model
-	State  map[string]metamodel.Token
+	State  map[string]token.Token
 }
 
 // newImage creates a new display for the given Petri net model and state.
-func newImage(model *metamodel.Model, writer io.Writer, state ...map[string]metamodel.Token) svgImage {
+func newImage(model *metamodel.Model, writer io.Writer, state ...map[string]token.Token) svgImage {
 	if len(state) == 1 {
 		return svgImage{Writer: writer, Model: model, State: state[0]}
 	}
-	return svgImage{Writer: writer, Model: model, State: make(map[string]metamodel.Token)}
+	return svgImage{Writer: writer, Model: model, State: make(map[string]token.Token)}
 }
 
 // getViewPort calculates the viewport dimensions for the Petri net model.

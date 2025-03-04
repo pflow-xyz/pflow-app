@@ -2,6 +2,7 @@ package metamodel
 
 import (
 	json2 "encoding/json"
+	"github.com/pflow-xyz/pflow-app/metamodel/token"
 	"io"
 	"strconv"
 )
@@ -37,8 +38,8 @@ func (m *importModel) ToModel() *Model {
 	for label, place := range m.Places {
 		model.Places[label] = Place{
 			Offset:   place.Offset,
-			Initial:  Token{place.Initial},
-			Capacity: Token{place.Capacity},
+			Initial:  token.Token{[]int64{place.Initial}},
+			Capacity: token.Token{[]int64{place.Capacity}},
 			X:        place.X,
 			Y:        place.Y,
 		}
@@ -57,7 +58,7 @@ func (m *importModel) ToModel() *Model {
 		model.Arrows[i] = Arrow{
 			Source:  arrow.Source,
 			Target:  arrow.Target,
-			Weight:  Token{arrow.Weight},
+			Weight:  token.Token{[]int64{arrow.Weight}},
 			Inhibit: arrow.Inhibit,
 		}
 	}
@@ -78,11 +79,11 @@ func (m *Model) ToJson(w io.Writer) {
 		first = false
 		w.Write([]byte("\"" + label + "\":{"))
 		w.Write([]byte("\"offset\":" + strconv.Itoa(place.Offset) + ","))
-		if place.Initial.Value != 0 {
-			w.Write([]byte("\"initial\":" + place.Initial.String() + ","))
+		if place.Initial.Value[0] != 0 {
+			w.Write([]byte("\"initial\":" + place.Initial.String(0) + ","))
 		}
-		if place.Capacity.Value != 0 {
-			w.Write([]byte("\"capacity\":" + place.Capacity.String() + ","))
+		if place.Capacity.Value[0] != 0 {
+			w.Write([]byte("\"capacity\":" + place.Capacity.String(0) + ","))
 		}
 		w.Write([]byte("\"x\":" + strconv.Itoa(place.X) + ","))
 		w.Write([]byte("\"y\":" + strconv.Itoa(place.Y)))
@@ -112,8 +113,8 @@ func (m *Model) ToJson(w io.Writer) {
 		w.Write([]byte("{"))
 		w.Write([]byte("\"source\":\"" + arc.Source + "\","))
 		w.Write([]byte("\"target\":\"" + arc.Target + "\""))
-		if arc.Weight.Value != 0 {
-			w.Write([]byte(",\"weight\":" + arc.Weight.String()))
+		if arc.Weight.Value[0] != 0 {
+			w.Write([]byte(",\"weight\":" + arc.Weight.String(0)))
 		}
 		if arc.Inhibit {
 			w.Write([]byte(",\"inhibit\":true"))
