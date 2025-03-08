@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="472" height="315" viewBox="-17 52 472 315" onload="init(evt)">
+  <rect x="0" y="0" width="472" height="375" fill="#ffffff"/>
+  <defs>
+    <marker id="markerArrow1" markerWidth="23" markerHeight="13" refX="31" refY="6" orient="auto">
+      <rect width="28" height="3" fill="white" stroke="white" x="3" y="5"/>
+      <path d="M2,2 L2,11 L10,6 L2,2"/>
+    </marker>
+    <marker id="markerInhibit1" markerWidth="23" markerHeight="13" refX="31" refY="6" orient="auto">
+      <rect width="28" height="3" fill="white" stroke="white" x="3" y="5"/>
+      <circle cx="5" cy="6.5" r="4"/>
+    </marker>
+  </defs>
+  <style type="text/css">
+    .interactive:hover { stroke:black; stroke-width:0.5; }
+  </style>
+  <script type="text/ecmascript">
+    <![CDATA[
+      var details;
+      function init(evt) {
+          console.log("init");
+          details = document.getElementById("details").firstChild;
+      }
+      function s(info) { details.nodeValue = "Element: " + info; }
+      function c() { details.nodeValue = ' '; }
+    ]]>
+  </script>
+  <text text-anchor="middle" x="236" y="30" font-size="20" font-family="Verdana" fill="rgb(0,0,0)" id="details"> </text>
+  <g class="interactive" onmouseover="s('Arrow 1')" onmouseout="c()">
+    <line x1="46" y1="116" x2="130" y2="207" stroke="#000000" fill="#000000" marker-end="url(#markerArrow1)"/>
+    <text x="84" y="157" font-size="small">1</text>
+  </g>
+  <g class="interactive" onmouseover="s('Arrow 2')" onmouseout="c()">
+    <line x1="130" y1="207" x2="227" y2="112" stroke="#000000" fill="#000000" marker-end="url(#markerArrow1)"/>
+    <text x="174" y="155" font-size="small">3</text>
+  </g>
+  <g class="interactive" onmouseover="s('Inhibit 1')" onmouseout="c()">
+    <line x1="43" y1="307" x2="130" y2="207" stroke="#000000" fill="#000000" marker-end="url(#markerInhibit1)"/>
+    <text x="82" y="253" font-size="small">3</text>
+  </g>
+  <g class="interactive" onmouseover="s('Inhibit 2')" onmouseout="c()">
+    <line x1="130" y1="207" x2="235" y2="306" stroke="#000000" fill="#000000" marker-end="url(#markerInhibit1)"/>
+    <text x="178" y="252" font-size="small">1</text>
+  </g>
+  <g class="interactive" onmouseover="s('Arrow 3')" onmouseout="c()">
+    <line x1="235" y1="306" x2="395" y2="299" stroke="#000000" fill="#000000" marker-end="url(#markerArrow1)"/>
+    <text x="311" y="298" font-size="small">1</text>
+  </g>
+  <g class="interactive" onmouseover="s('Place 1')" onmouseout="c()">
+    <circle cx="395" cy="299" r="16" stroke-width="1.5" fill="#ffffff" stroke="#000000"/>
+    <text x="377" y="279" font-size="small">place1</text>
+  </g>
+  <g class="interactive" onmouseover="s('Place 0')" onmouseout="c()">
+    <circle cx="130" cy="207" r="16" stroke-width="1.5" fill="#ffffff" stroke="#000000"/>
+    <text x="112" y="187" font-size="small">place0</text>
+    <circle cx="130" cy="207" r="2" fill="#000000" stroke="#000000"/>
+  </g>
+  <g class="interactive" onmouseover="s('Transition 1')" onmouseout="c()">
+    <rect x="210" y="95" width="30" height="30" stroke="#000000" fill="#ffffff" rx="4"/>
+    <text x="210" y="87" font-size="small">txn1</text>
+  </g>
+  <g class="interactive" onmouseover="s('Transition 2')" onmouseout="c()">
+    <rect x="26" y="290" width="30" height="30" stroke="#000000" fill="#ffffff" rx="4"/>
+    <text x="26" y="282" font-size="small">txn2</text>
+  </g>
+  <g class="interactive" onmouseover="s('Transition 3')" onmouseout="c()">
+    <rect x="218" y="289" width="30" height="30" stroke="#000000" fill="#ffffff" rx="4"/>
+    <text x="218" y="281" font-size="small">txn3</text>
+  </g>
+  <g class="interactive" onmouseover="s('Transition 0')" onmouseout="c()">
+    <rect x="29" y="99" width="30" height="30" stroke="#000000" fill="#ffffff" rx="4"/>
+    <text x="29" y="91" font-size="small">txn0</text>
+  </g>
+</svg>
