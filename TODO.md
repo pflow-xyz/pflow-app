@@ -18,3 +18,4 @@ DONE
 - [x] install new minURL format + convert to cid
 - [x] develop a URL format ?m=petriNet
 - [x] refactor SVG generation to be dark-mode compatible i.e. don't assume white background
+  [![pflow](https://pflow.dev/img/zb2rhbzaEAGY4L6SpmAByfdYr6jt945NmNY6zVZ1mWHK8Jjcb.svg)](https://pflow.dev/p/zb2rhbzaEAGY4L6SpmAByfdYr6jt945NmNY6zVZ1mWHK8Jjcb/)

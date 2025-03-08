@@ -1,204 +1,158 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="500" height="300" viewBox="0 0 500 300" onload="init(evt)">
-            <metadata id="metadata">
-                {
-                "places": {
-                "p1": { "tokens": 1, "x": 100, "y": 150 },
-                "p2": { "tokens": 0, "x": 300, "y": 150 }
-                },
-                "transitions": {
-                "t1": { "inputs": ["p1"], "outputs": ["p2"] }
-                }
-                }
-            </metadata>
+<svg xmlns="http://www.w3.org/2000/svg" width="1312" height="315" viewBox="-17 52 1312 315" onload="init(evt)">
+    <defs>
+        <marker id="markerArrow1" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <path d="M0,0 L10,3.5 L0,7 Z" fill="black" stroke="black"/>
+        </marker>
+        <marker id="markerInhibit1" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <circle cx="3.5" cy="3.5" r="3.5" fill="black" stroke="black"/>
+        </marker>
+    </defs>
+    <style>
+        .place { fill: #ffffff; stroke: #000000; stroke-width: 1.5; }
+        .transition { fill: #fab5b0; stroke: #000000; }
+        .transition.special { fill: #62fa75; }
+        .arc { stroke: #000000; stroke-width: 2; }
+        .label { font-size: small; }
+        .token { fill: #000000; }
+    </style>
+    <script type="text/ecmascript">
+        <![CDATA[
+           let petriNet = {};
 
-            <style>
-                .place, .transition { cursor: pointer; }
-                .token { fill: red; }
-            </style>
+           function init(evt) {
+               let metadataElement = document.getElementById("metadata");
+               if (metadataElement) {
+                   let metadata = metadataElement.textContent.trim();
+                   try {
+                       petriNet = JSON.parse(metadata);
+                       createElements();
+                       updateTokens();
+                   } catch (error) {
+                       console.error("Failed to parse metadata: ", error);
+                   }
+               } else {
+                   console.error("Metadata element not found");
+               }
+           }
 
-            <script type="text/ecmascript">
-                <![CDATA[
-            let petriNet = {};
-            let selectedElement = null;
-            let offset = { x: 0, y: 0 };
+           function createElements() {
+               const svg = document.querySelector("svg");
 
-            function init(evt) {
-                let metadataElement = document.getElementById("metadata");
-                if (metadataElement) {
-                    let metadata = metadataElement.textContent.trim();
-                    try {
-                        petriNet = JSON.parse(metadata);
-                        createElements();
-                        updateTokens();
-                    } catch (error) {
-                        console.error("Failed to parse metadata: ", error);
-                    }
-                } else {
-                    console.error("Metadata element not found");
-                }
-            }
+               // Clear existing elements
+               document.querySelectorAll(".place, .transition, .arc, .label").forEach(e => e.remove());
 
-            function createElements() {
-                const svg = document.querySelector("svg");
+               // Create arcs
+               Object.entries(petriNet.transitions).forEach(([id, transition]) => {
+                   transition.inputs.forEach(input => {
+                       let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                       line.setAttribute("class", "arc");
+                       line.setAttribute("x1", petriNet.places[input].x + 20);
+                       line.setAttribute("y1", petriNet.places[input].y);
+                       line.setAttribute("x2", 190);
+                       line.setAttribute("y2", 150);
+                       line.setAttribute("marker-end", "url(#markerArrow1)");
+                       svg.appendChild(line);
+                   });
 
-                // Clear existing elements
-                document.querySelectorAll(".place, .transition, .arc").forEach(e => e.remove());
+                   transition.outputs.forEach(output => {
+                       let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                       line.setAttribute("class", "arc");
+                       line.setAttribute("x1", 210);
+                       line.setAttribute("y1", 150);
+                       line.setAttribute("x2", petriNet.places[output].x - 20);
+                       line.setAttribute("y2", petriNet.places[output].y);
+                       line.setAttribute("marker-end", "url(#markerArrow1)");
+                       svg.appendChild(line);
+                   });
+               });
 
-                // Create places
-                Object.entries(petriNet.places).forEach(([id, place]) => {
-                    let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                    circle.setAttribute("id", id);
-                    circle.setAttribute("class", "place");
-                    circle.setAttribute("cx", place.x);
-                    circle.setAttribute("cy", place.y);
-                    circle.setAttribute("r", "20");
-                    circle.setAttribute("stroke", "black");
-                    circle.setAttribute("fill", "white");
-                    circle.setAttribute("onmousedown", "startDrag(evt)");
-                    circle.setAttribute("onmousemove", "drag(evt)");
-                    circle.setAttribute("onmouseup", "endDrag(evt)");
-                    circle.setAttribute("onmouseleave", "endDrag(evt)");
-                    svg.appendChild(circle);
+               // Create places
+               Object.entries(petriNet.places).forEach(([id, place]) => {
+                   let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                   circle.setAttribute("id", id);
+                   circle.setAttribute("class", "place");
+                   circle.setAttribute("cx", place.x);
+                   circle.setAttribute("cy", place.y);
+                   circle.setAttribute("r", "16");
+                   svg.appendChild(circle);
 
-                    let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    text.setAttribute("x", place.x - 15);
-                    text.setAttribute("y", place.y + 30);
-                    text.setAttribute("font-size", "12");
-                    text.textContent = id.toUpperCase();
-                    svg.appendChild(text);
-                });
+                   let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                   text.setAttribute("x", place.x - 18);
+                   text.setAttribute("y", place.y - 20);
+                   text.setAttribute("class", "label");
+                   text.textContent = id.toUpperCase();
+                   svg.appendChild(text);
+               });
 
-                // Create transitions
-                Object.entries(petriNet.transitions).forEach(([id, transition]) => {
-                    let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    rect.setAttribute("id", id);
-                    rect.setAttribute("class", "transition");
-                    rect.setAttribute("x", 190);
-                    rect.setAttribute("y", 135);
-                    rect.setAttribute("width", "20");
-                    rect.setAttribute("height", "30");
-                    rect.setAttribute("stroke", "black");
-                    rect.setAttribute("fill", "white");
-                    rect.setAttribute("onclick", `fireTransition('${id}')`);
-                    rect.setAttribute("onmousedown", "startDrag(evt)");
-                    rect.setAttribute("onmousemove", "drag(evt)");
-                    rect.setAttribute("onmouseup", "endDrag(evt)");
-                    rect.setAttribute("onmouseleave", "endDrag(evt)");
-                    svg.appendChild(rect);
+               // Create transitions
+               Object.entries(petriNet.transitions).forEach(([id, transition]) => {
+                   let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                   rect.setAttribute("id", id);
+                   rect.setAttribute("class", "transition");
+                   rect.setAttribute("x", 190);
+                   rect.setAttribute("y", 135);
+                   rect.setAttribute("width", "30");
+                   rect.setAttribute("height", "30");
+                   rect.setAttribute("rx", "4");
+                   rect.setAttribute("onclick", `fireTransition('${id}')`);
+                   svg.appendChild(rect);
 
-                    let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    text.setAttribute("x", 180);
-                    text.setAttribute("y", 130);
-                    text.setAttribute("font-size", "12");
-                    text.textContent = id.toUpperCase();
-                    svg.appendChild(text);
-                });
+                   let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                   text.setAttribute("x", 180);
+                   text.setAttribute("y", 130);
+                   text.setAttribute("class", "label");
+                   text.textContent = id.toUpperCase();
+                   svg.appendChild(text);
+               });
+           }
 
-                // Create arcs
-                Object.entries(petriNet.transitions).forEach(([id, transition]) => {
-                    transition.inputs.forEach(input => {
-                        let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                        line.setAttribute("class", "arc");
-                        line.setAttribute("x1", petriNet.places[input].x + 20);
-                        line.setAttribute("y1", petriNet.places[input].y);
-                        line.setAttribute("x2", 190);
-                        line.setAttribute("y2", 150);
-                        line.setAttribute("stroke", "black");
-                        line.setAttribute("stroke-width", "2");
-                        line.setAttribute("marker-end", "url(#arrow)");
-                        svg.appendChild(line);
-                    });
+           function fireTransition(id) {
+               if (!petriNet.transitions || !petriNet.transitions[id]) {
+                   console.error(`Transition '${id}' not found in petriNet.transitions`);
+                   return;
+               }
 
-                    transition.outputs.forEach(output => {
-                        let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                        line.setAttribute("class", "arc");
-                        line.setAttribute("x1", 210);
-                        line.setAttribute("y1", 150);
-                        line.setAttribute("x2", petriNet.places[output].x - 20);
-                        line.setAttribute("y2", petriNet.places[output].y);
-                        line.setAttribute("stroke", "black");
-                        line.setAttribute("stroke-width", "2");
-                        line.setAttribute("marker-end", "url(#arrow)");
-                        svg.appendChild(line);
-                    });
-                });
-            }
+               let transition = petriNet.transitions[id];
+               let inputPlace = transition.inputs[0];
+               let outputPlace = transition.outputs[0];
 
-            function startDrag(evt) {
-                selectedElement = evt.target;
-                offset.x = evt.clientX - parseFloat(selectedElement.getAttribute("cx") || selectedElement.getAttribute("x"));
-                offset.y = evt.clientY - parseFloat(selectedElement.getAttribute("cy") || selectedElement.getAttribute("y"));
-            }
+               if (petriNet.places[inputPlace].tokens > 0) {
+                   petriNet.places[inputPlace].tokens--;
+                   petriNet.places[outputPlace].tokens++;
+                   console.log(`Fired transition: ${id}`);
+                   updateTokens();
+               } else {
+                   console.warn(`No tokens available in '${inputPlace}' to fire transition '${id}'`);
+               }
+           }
 
-            function drag(evt) {
-                if (selectedElement) {
-                    evt.preventDefault();
-                    let x = evt.clientX - offset.x;
-                    let y = evt.clientY - offset.y;
-                    if (selectedElement.tagName === "circle") {
-                        selectedElement.setAttribute("cx", x);
-                        selectedElement.setAttribute("cy", y);
-                        petriNet.places[selectedElement.id].x = x;
-                        petriNet.places[selectedElement.id].y = y;
-                    } else if (selectedElement.tagName === "rect") {
-                        selectedElement.setAttribute("x", x);
-                        selectedElement.setAttribute("y", y);
-                        // Assuming transitions are positioned based on their id
-                        Object.entries(petriNet.transitions).forEach(([id, transition]) => {
-                            if (id === selectedElement.id) {
-                                transition.x = x;
-                                transition.y = y;
-                            }
-                        });
-                    }
-                    createElements();
-                }
-            }
+           function updateTokens() {
+               // Remove existing tokens
+               document.querySelectorAll(".token").forEach(e => e.remove());
 
-            function endDrag(evt) {
-                selectedElement = null;
-                createElements();
-            }
-
-            function fireTransition(id) {
-                if (!petriNet.transitions || !petriNet.transitions[id]) {
-                    console.error(`Transition '${id}' not found in petriNet.transitions`);
-                    return;
-                }
-
-                let transition = petriNet.transitions[id];
-                let inputPlace = transition.inputs[0];
-                let outputPlace = transition.outputs[0];
-
-                if (petriNet.places[inputPlace].tokens > 0) {
-                    petriNet.places[inputPlace].tokens--;
-                    petriNet.places[outputPlace].tokens++;
-                    console.log(`Fired transition: ${id}`);
-                    updateTokens();
-                } else {
-                    console.warn(`No tokens available in '${inputPlace}' to fire transition '${id}'`);
-                }
-            }
-
-            function updateTokens() {
-                document.querySelectorAll(".token").forEach(e => e.remove());
-                Object.entries(petriNet.places).forEach(([id, place]) => {
-                    for (let i = 0; i < place.tokens; i++) {
-                        let token = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                        token.setAttribute("cx", place.x);
-                        token.setAttribute("cy", place.y);
-                        token.setAttribute("r", "8");
-                        token.setAttribute("class", "token");
-                        document.querySelector("svg").appendChild(token);
-                    }
-                });
-            }
-            ]]>
-            </script>
-
-            <defs>
-                <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-                    <polygon points="0 0, 10 3.5, 0 7" fill="black" />
-                </marker>
-            </defs>
-        </svg>
+               // Create new tokens
+               Object.entries(petriNet.places).forEach(([id, place]) => {
+                   for (let i = 0; i < place.tokens; i++) {
+                       let token = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                       token.setAttribute("cx", place.x);
+                       token.setAttribute("cy", place.y);
+                       token.setAttribute("r", "4");
+                       token.setAttribute("class", "token");
+                       document.querySelector("svg").appendChild(token);
+                   }
+               });
+           }
+       ]]>
+    </script>
+    <metadata id="metadata">
+        {
+        "places": {
+        "p1": { "tokens": 1, "x": 100, "y": 150 },
+        "p2": { "tokens": 0, "x": 300, "y": 150 }
+        },
+        "transitions": {
+        "t1": { "inputs": ["p1"], "outputs": ["p2"] }
+        }
+        }
+    </metadata>
+</svg>
