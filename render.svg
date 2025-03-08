@@ -25,6 +25,7 @@
             let metadata = metadataElement.textContent.trim();
             try {
                 petriNet = JSON.parse(metadata);
+                createElements();
                 updateTokens();
             } catch (error) {
                 console.error("Failed to parse metadata: ", error);
@@ -34,16 +35,94 @@
         }
     }
 
+    function createElements() {
+        const svg = document.querySelector("svg");
+
+        // Clear existing elements
+        document.querySelectorAll(".place, .transition, .arc").forEach(e => e.remove());
+
+        // Create places
+        Object.entries(petriNet.places).forEach(([id, place]) => {
+            let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("id", id);
+            circle.setAttribute("class", "place");
+            circle.setAttribute("cx", place.x);
+            circle.setAttribute("cy", place.y);
+            circle.setAttribute("r", "20");
+            circle.setAttribute("stroke", "black");
+            circle.setAttribute("fill", "white");
+            svg.appendChild(circle);
+
+            let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", place.x - 15);
+            text.setAttribute("y", place.y + 30);
+            text.setAttribute("font-size", "12");
+            text.textContent = id.toUpperCase();
+            svg.appendChild(text);
+        });
+
+        // Create transitions
+        Object.entries(petriNet.transitions).forEach(([id, transition]) => {
+            let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("id", id);
+            rect.setAttribute("class", "transition");
+            rect.setAttribute("x", 190);
+            rect.setAttribute("y", 135);
+            rect.setAttribute("width", "20");
+            rect.setAttribute("height", "30");
+            rect.setAttribute("stroke", "black");
+            rect.setAttribute("fill", "white");
+            rect.setAttribute("onclick", `fireTransition('${id}')`);
+            svg.appendChild(rect);
+
+            let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", 180);
+            text.setAttribute("y", 130);
+            text.setAttribute("font-size", "12");
+            text.textContent = id.toUpperCase();
+            svg.appendChild(text);
+        });
+
+        // Create arcs
+        Object.entries(petriNet.transitions).forEach(([id, transition]) => {
+            transition.inputs.forEach(input => {
+                let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("class", "arc");
+                line.setAttribute("x1", petriNet.places[input].x + 20);
+                line.setAttribute("y1", petriNet.places[input].y);
+                line.setAttribute("x2", 190);
+                line.setAttribute("y2", 150);
+                line.setAttribute("stroke", "black");
+                line.setAttribute("stroke-width", "2");
+                line.setAttribute("marker-end", "url(#arrow)");
+                svg.appendChild(line);
+            });
+
+            transition.outputs.forEach(output => {
+                let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("class", "arc");
+                line.setAttribute("x1", 210);
+                line.setAttribute("y1", 150);
+                line.setAttribute("x2", petriNet.places[output].x - 20);
+                line.setAttribute("y2", petriNet.places[output].y);
+                line.setAttribute("stroke", "black");
+                line.setAttribute("stroke-width", "2");
+                line.setAttribute("marker-end", "url(#arrow)");
+                svg.appendChild(line);
+            });
+        });
+    }
+
     function fireTransition(id) {
         if (!petriNet.transitions || !petriNet.transitions[id]) {
             console.error(`Transition '${id}' not found in petriNet.transitions`);
             return;
         }
-        
+
         let transition = petriNet.transitions[id];
         let inputPlace = transition.inputs[0];
         let outputPlace = transition.outputs[0];
-        
+
         if (petriNet.places[inputPlace].tokens > 0) {
             petriNet.places[inputPlace].tokens--;
             petriNet.places[outputPlace].tokens++;
@@ -69,21 +148,6 @@
     }
     ]]>
     </script>
-
-    <!-- Places -->
-    <circle id="p1" class="place" cx="100" cy="150" r="20" stroke="black" fill="white" />
-    <text x="85" y="180" font-size="12">P1</text>
-
-    <circle id="p2" class="place" cx="300" cy="150" r="20" stroke="black" fill="white" />
-    <text x="285" y="180" font-size="12">P2</text>
-
-    <!-- Transition -->
-    <rect id="t1" class="transition" x="190" y="135" width="20" height="30" stroke="black" fill="white" onclick="fireTransition('t1')" />
-    <text x="180" y="130" font-size="12">T1</text>
-
-    <!-- Arcs -->
-    <line x1="120" y1="150" x2="190" y2="150" stroke="black" stroke-width="2" marker-end="url(#arrow)" />
-    <line x1="210" y1="150" x2="280" y2="150" stroke="black" stroke-width="2" marker-end="url(#arrow)" />
 
     <defs>
         <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
