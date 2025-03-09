@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostMessage Example</title>
+</head>
+<body>
+
+    <h2>SVG Communication via postMessage</h2>
+    
+    <button onclick="sendMessage('changeColor')">Change Color</button>
+    <button onclick="sendMessage('moveCircle')">Move Circle</button>
+
+    <object id="svgContainer" data="interactive.svg" type="image/svg+xml" width="400" height="400"></object>
+
+    <script>
+        function sendMessage(action) {
+            let svgObject = document.getElementById("svgContainer");
+            
+            // Ensure the SVG is loaded before sending a message
+            if (svgObject.contentWindow) {
+                svgObject.contentWindow.postMessage(action, "*"); // Send message to SVG
+            } else {
+                console.error("SVG content is not loaded yet.");
+            }
+        }
+    </script>
+
+</body>
+</html>
