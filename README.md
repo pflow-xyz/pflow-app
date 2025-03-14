@@ -6,7 +6,9 @@ it has evolved into a very complex react app.
 The intention here is to re-think the viewing and sharing experience,
 and extract some of the features from pflow.dev.
 
-*Status* : POC
+*Status* : Pre-Alpha
+
+https://pflow-app.fly.dev/
 
 ## Goals
 
