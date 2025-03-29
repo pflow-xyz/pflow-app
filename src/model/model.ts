@@ -1,4 +1,4 @@
-export type Model = {
+export type ModelData = {
     modelType: string;
     version: string;
     places: Record<string, Place>;
@@ -27,6 +27,46 @@ export type Arrow = {
     weight?: number;
     inhibit?: boolean;
 };
+
+export class Model {
+    modelType: string;
+    version: string;
+    places: Record<string, Place>;
+    transitions: Record<string, Transition>;
+    arcs: Array<Arrow>;
+
+    constructor(data: ModelData = {} as Model) {
+        this.modelType = data.modelType;
+        this.version = data.version;
+        this.places = data.places;
+        this.transitions = data.transitions;
+        this.arcs = data.arcs;
+    }
+
+    static fromUrl(url: string): Model {
+        return new Model(importUrl(url));
+    }
+
+    static fromBase64(base64: string): Model {
+        return new Model(JSON.parse(atob(base64)));
+    }
+
+    toBase64(): string {
+        return btoa(JSON.stringify(this));
+    }
+
+    toUrl(): string {
+        return exportAsUrl(this);
+    }
+
+    toImage(): string {
+        return toImage(this);
+    }
+
+    toMinUrl(): string {
+        return exportAsMinUrl(this);
+    }
+}
 
 export function exportAsMinUrl(model: any): string {
     const params = new URLSearchParams();
@@ -111,11 +151,11 @@ export function exportAsMinUrl(model: any): string {
     return `?${params.toString()}`;
 }
 
-export function importFromMinUrl(url: string): Model {
+export function importFromMinUrl(url: string): ModelData {
     const queryString = url.split('?')[1];
     const params = queryString.split('&');
 
-    const model: Model = {
+    const model: ModelData = {
         modelType: '',
         version: '',
         places: {},
@@ -223,7 +263,7 @@ export function exportAsUrl(model: any): string {
     return `?${params.toString()}`;
 }
 
-export function importUrl(url: string): Model {
+export function importUrl(url: string): ModelData {
     // if modelType is in the url use importFromUrl
     if (url.includes('modelType')) {
         return importFromUrl(url);
@@ -233,11 +273,11 @@ export function importUrl(url: string): Model {
     return {} as Model
 }
 
-export function importFromUrl(url: string): Model {
+export function importFromUrl(url: string): ModelData {
     const queryString = url.split('?')[1];
     const params = new URLSearchParams(queryString);
 
-    const model: Model = {
+    const model: ModelData = {
         modelType: '',
         version: '',
         places: {},
@@ -301,14 +341,14 @@ export function importFromUrl(url: string): Model {
     return model;
 }
 
-export function toBase64(model: Model): string {
+export function toBase64(model: ModelData): string {
     return btoa(JSON.stringify(model))
 }
 
-export function toImage(model: Model): string {
+export function toImage(model: ModelData): string {
     return 'https://pflow.dev/img/?b=' + toBase64(model)
 }
 
-export function toUrl(model: Model): string {
+export function toUrl(model: ModelData): string {
     return 'https://pflow.dev/?b=' + toBase64(model)
 }

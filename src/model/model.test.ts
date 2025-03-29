@@ -1,4 +1,4 @@
-import {importFromUrl, importFromMinUrl, exportAsUrl, Model, exportAsMinUrl} from './model';
+import {importFromUrl, importFromMinUrl, exportAsUrl, ModelData, exportAsMinUrl} from './model';
 import { parseUrl, parseMinUrl, LexModel } from './parser';
 
 
@@ -22,13 +22,13 @@ const testModel = {
         {"source": "place0", "target": "txn3", "inhibit": true},
         {"source": "txn3", "target": "place1"}
     ]
-} as Model
+} as ModelData
 
 describe('Model Tests', () => {
 
   it('should import model from URL', () => {
     const url = '?modelType=testModel&version=1.0&place=place1&offset=10&initial=5&capacity=20&x=100&y=200&transition=trans1&x=300&y=400&source=place1&target=trans1&weight=2&inhibit=true';
-    const model: Model = importFromUrl(url);
+    const model: ModelData = importFromUrl(url);
     expect(model.modelType).toBe('testModel');
     expect(model.version).toBe('1.0');
     expect(model.places['place1']).toEqual({ offset: 10, initial: 5, capacity: 20, x: 100, y: 200 });
@@ -38,7 +38,7 @@ describe('Model Tests', () => {
 
   it('should import model from minified URL', () => {
     const minUrl = '?m=testModel&v=1.0&p=place1&o=10&i=5&c=20&x=100&y=200&t=trans1&x=300&y=400&s=place1&e=trans1&w=2&n=1';
-    const model: Model = importFromMinUrl(minUrl);
+    const model: ModelData = importFromMinUrl(minUrl);
     expect(model.modelType).toBe('testModel');
     expect(model.version).toBe('1.0');
     expect(model.places['place1']).toEqual({ offset: 10, initial: 5, capacity: 20, x: 100, y: 200 });

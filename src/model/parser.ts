@@ -28,6 +28,9 @@ interface LexModel {
   arcs: Arc[];
 }
 
+// REVIEW: parser railroad diagram
+// https://gist.github.com/stackdump/f877f4d3d4a806328dc30f6eeac52bed
+
 function parseUrl(url: string): LexModel | Error {
   const tokens = lexer(url);
   if (tokens instanceof Error) {
