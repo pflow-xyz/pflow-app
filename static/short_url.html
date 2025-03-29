@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>pflow | metamodel</title>
+    <title>short_url</title>
 </head>
 <body>
+<!--
+<a href="?m=PetriNet&v=v0&p=place0&o=0&i=1&c=3&x=130&y=207&p=place1&o=1&i=0&c=0&x=395&y=299&t=txn0&x=46&y=116&t=txn1&x=227&y=112&t=txn2&x=43&y=307&t=txn3&x=235&y=306&s=txn0&e=place0&w=1&s=place0&e=txn1&w=3&s=txn2&e=place0&w=3&n=1&s=place0&e=txn3&w=1&n=1&s=txn3&e=place1&w=1">example</a>
+-->
 <div id="model-container"></div>
 <script>
     const model = {
@@ -95,6 +98,7 @@
     function importFromMinUrl() {
         const url = window.location.href;
         const queryString = url.split('?')[1];
+        if (!queryString) return;
         const params = queryString.split('&');
 
         let currentPlace = null;

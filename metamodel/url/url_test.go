@@ -3,6 +3,7 @@ package url_test
 import (
 	"fmt"
 	"github.com/pflow-xyz/pflow-app/metamodel"
+	"github.com/pflow-xyz/pflow-app/metamodel/token"
 	"github.com/pflow-xyz/pflow-app/metamodel/url"
 	"strings"
 	"testing"
@@ -27,8 +28,8 @@ var exampleModel = metamodel.Model{
 	ModelType: "PetriNet",
 	Version:   "v0",
 	Places: map[string]metamodel.Place{
-		"place0": {Offset: 0, Initial: metamodel.Token{1}, Capacity: metamodel.Token{3}, X: 130, Y: 207},
-		"place1": {Offset: 1, Initial: metamodel.Token{0}, Capacity: metamodel.Token{0}, X: 395, Y: 299},
+		"place0": {Offset: 0, Initial: token.Token{1}, Capacity: token.Token{3}, X: 130, Y: 207},
+		"place1": {Offset: 1, Initial: token.Token{0}, Capacity: token.Token{0}, X: 395, Y: 299},
 	},
 	Transitions: map[string]metamodel.Transition{
 		"txn0": {X: 46, Y: 116},
@@ -37,11 +38,11 @@ var exampleModel = metamodel.Model{
 		"txn3": {X: 235, Y: 306},
 	},
 	Arrows: []metamodel.Arrow{
-		{Source: "txn0", Target: "place0", Weight: metamodel.Token{1}},
-		{Source: "place0", Target: "txn1", Weight: metamodel.Token{3}},
-		{Source: "txn2", Target: "place0", Weight: metamodel.Token{3}, Inhibit: true},
-		{Source: "place0", Target: "txn3", Weight: metamodel.Token{1}, Inhibit: true},
-		{Source: "txn3", Target: "place1", Weight: metamodel.Token{1}},
+		{Source: "txn0", Target: "place0", Weight: token.Token{1}},
+		{Source: "place0", Target: "txn1", Weight: token.Token{3}},
+		{Source: "txn2", Target: "place0", Weight: token.Token{3}, Inhibit: true},
+		{Source: "place0", Target: "txn3", Weight: token.Token{1}, Inhibit: true},
+		{Source: "txn3", Target: "place1", Weight: token.Token{1}},
 	},
 }
 

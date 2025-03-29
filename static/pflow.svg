@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" onload="init(evt)">
+    <defs>
+        <marker id="markerArrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <path d="M0,0 L10,3.5 L0,7 Z" fill="#000"/>
+        </marker>
+    </defs>
+    <style>
+        .place { fill: #ffffff; stroke: #000000; stroke-width: 1.5; }
+        .transition { fill: #fab5b0; stroke: #000000; }
+        .arc { stroke: #000000; stroke-width: 2; marker-end: url(#markerArrow); }
+        .label { font-size: small; user-select: none; }
+        .token { fill: #000000; }
+    </style>
+    <script type="text/ecmascript">
+        <![CDATA[
+        const model = {
+            modelType: "petriNet",
+            version: "v0",
+            places: {},
+            transitions: {},
+            arcs: []
+        };
+
+        function importFromMinUrl() {
+            const url = window.location.href;
+            const queryString = url.split('?')[1];
+            if (!queryString) return;
+            const params = queryString.split('&');
+
+            let currentPlace = null;
+            let currentTransition = null;
+            let currentArc = null;
+
+            params.forEach(param => {
+                const [key, value] = param.split('=');
+                const decodedValue = decodeURIComponent(value);
+
+                switch (key) {
+                    case 'm':
+                        model.modelType = decodedValue;
+                        break;
+                    case 'v':
+                        model.version = decodedValue;
+                        break;
+                    case 'p':
+                        currentPlace = decodedValue;
+                        model.places[currentPlace] = {initial: 0, capacity: 0};
+                        break;
+                    case 'o':
+                        if (currentPlace) model.places[currentPlace].offset = Number(decodedValue);
+                        break;
+                    case 'i':
+                        if (currentPlace) model.places[currentPlace].initial = Number(decodedValue) || 0;
+                        break;
+                    case 'c':
+                        if (currentPlace) model.places[currentPlace].capacity = Number(decodedValue) || 0;
+                        break;
+                    case 'x':
+                        if (currentPlace) model.places[currentPlace].x = Number(decodedValue);
+                        else if (currentTransition) model.transitions[currentTransition].x = Number(decodedValue);
+                        break;
+                    case 'y':
+                        if (currentPlace) model.places[currentPlace].y = Number(decodedValue);
+                        else if (currentTransition) model.transitions[currentTransition].y = Number(decodedValue);
+                        break;
+                    case 't':
+                        currentPlace = null;
+                        currentTransition = decodedValue;
+                        model.transitions[currentTransition] = {};
+                        break;
+                    case 's':
+                        currentPlace = null;
+                        currentTransition = null;
+                        currentArc = model.arcs.length;
+                        model.arcs.push({source: decodedValue, target: '', inhibit: false, weight: 1});
+                        break;
+                    case 'e':
+                        if (currentArc !== null) model.arcs[currentArc].target = decodedValue;
+                        break;
+                    case 'n':
+                        if (currentArc !== null) model.arcs[currentArc].inhibit = decodedValue === "1";
+                        break;
+                    case 'w':
+                        if (currentArc !== null) model.arcs[currentArc].weight = Number(decodedValue);
+                        break;
+                    default:
+                        break;
+                }
+            });
+        }
+
+        function createElements() {
+            const svg = document.querySelector("svg");
+            console.log({model});
+
+            // Clear existing elements
+            document.querySelectorAll(".place, .transition, .arc, .label").forEach(e => e.remove());
+
+            // Create arcs
+            model.arcs.forEach(arc => {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("class", "arc");
+                line.setAttribute("x1", model.places[arc.source].x);
+                line.setAttribute("y1", model.places[arc.source].y);
+                line.setAttribute("x2", model.places[arc.target].x);
+                line.setAttribute("y2", model.places[arc.target].y);
+                svg.appendChild(line);
+            });
+
+            // Create places
+            Object.entries(model.places).forEach(([id, place]) => {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("id", id);
+                circle.setAttribute("class", "place");
+                circle.setAttribute("cx", place.x);
+                circle.setAttribute("cy", place.y);
+                circle.setAttribute("r", "16");
+                svg.appendChild(circle);
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", place.x - 18);
+                text.setAttribute("y", place.y - 20);
+                text.setAttribute("class", "label");
+                text.textContent = id.toUpperCase();
+                svg.appendChild(text);
+            });
+
+            // Create transitions
+            Object.entries(model.transitions).forEach(([id, transition]) => {
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                rect.setAttribute("id", id);
+                rect.setAttribute("class", "transition");
+                rect.setAttribute("x", transition.x - 15);
+                rect.setAttribute("y", transition.y - 15);
+                rect.setAttribute("width", "30");
+                rect.setAttribute("height", "30");
+                rect.setAttribute("rx", "4");
+                svg.appendChild(rect);
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", transition.x - 18);
+                text.setAttribute("y", transition.y - 20);
+                text.setAttribute("class", "label");
+                text.textContent = id.toUpperCase();
+                svg.appendChild(text);
+            });
+        }
+
+        function init(evt) {
+            importFromMinUrl();
+            createElements();
+        }
+        ]]>
+    </script>
+</svg>
