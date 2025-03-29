@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
+    <rect id="background" width="400" height="400" fill="lightgray"/>
+    <circle id="circle" cx="200" cy="200" r="50" fill="blue" />
+
+    <script>
+        window.addEventListener("message", function(event) {
+            if (event.origin !== window.location.origin) return; // Prevents cross-origin abuse
+            
+            let circle = document.getElementById("circle");
+
+            if (event.data === "changeColor") {
+                let newColor = circle.getAttribute("fill") === "blue" ? "red" : "blue";
+                circle.setAttribute("fill", newColor);
+                event.source.postMessage("Color changed to " + newColor, event.origin);
+            } 
+            else if (event.data === "moveCircle") {
+                let newX = Math.random() * 300 + 50;
+                let newY = Math.random() * 300 + 50;
+                circle.setAttribute("cx", newX);
+                circle.setAttribute("cy", newY);
+                event.source.postMessage("Circle moved to (" + newX + ", " + newY + ")", event.origin);
+            }
+        });
+    </script>
+</svg>

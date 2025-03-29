@@ -91,6 +91,7 @@
 
         function createElements() {
             const svg = document.querySelector("svg");
+            console.log({model});
 
             // Clear existing elements
             document.querySelectorAll(".place, .transition, .arc, .label").forEach(e => e.remove());

@@ -357,6 +357,9 @@ function EmbeddedImport(): React.ReactElement {
 }
 
 function App() {
+    // REVIEW: consider using an Object here to isolate the model from the rest of the code
+    // react components will be able to access the model through props
+    // - really we just need to publish the model App -> EmbeddedImport
     return (
         <svg width={1500} height={1000} viewBox="0 0 1500 1000" xmlns="http://www.w3.org/2000/svg">
             <foreignObject x="100" y="0" width="1500" height="1000">

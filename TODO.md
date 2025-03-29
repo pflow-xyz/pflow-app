@@ -13,9 +13,9 @@ BACKLOG
  
 ICEBOX
 ------
-- [ ] can/should we present on canvas? try out zoom/in out
-- [ ] add new sqlite storage
+- [ ] Use SVG for UI elements and Canvas for complex rendering
 - [ ] backport to pflow.xyz - consider how to store legacy petri-net data to make it compatible with minURL
+- [ ] add new sqlite storage for server
  
 DONE
 ----
