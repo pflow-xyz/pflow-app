@@ -20,7 +20,7 @@ interface Arc {
   inhibit?: boolean;
 }
 
-interface Model {
+interface LexModel {
   modelType: string;
   version: string;
   places: { [key: string]: Place };
@@ -28,13 +28,13 @@ interface Model {
   arcs: Arc[];
 }
 
-function parseUrl(url: string): Model | Error {
+function parseUrl(url: string): LexModel | Error {
   const tokens = lexer(url);
   if (tokens instanceof Error) {
     return tokens;
   }
 
-  const model: Model = {
+  const model: LexModel = {
     modelType: '',
     version: '',
     places: {},
@@ -100,13 +100,13 @@ function parseUrl(url: string): Model | Error {
   return model;
 }
 
-function parseMinUrl(url: string): Model | Error {
+function parseMinUrl(url: string): LexModel | Error {
   const tokens = lexer(url);
   if (tokens instanceof Error) {
     return tokens;
   }
 
-  const model: Model = {
+  const model: LexModel = {
     modelType: '',
     version: '',
     places: {},
@@ -182,4 +182,4 @@ function parseMinUrl(url: string): Model | Error {
 }
 
 export { parseUrl, parseMinUrl };
-export type { Model };
+export type { LexModel };
