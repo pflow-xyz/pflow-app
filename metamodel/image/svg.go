@@ -73,10 +73,49 @@ func (img *svgImage) getViewPort() (x1 int, y1 int, width int, height int) {
 	return x1, y1, x2 - x1, y2 - y1
 }
 
+const script = `<script type="text/ecmascript"><![CDATA[
+console.log('SVG loaded');
+
+function changeColor(elementId, color) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.setAttribute('fill', color);
+    }
+}
+
+function animateElement(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        const animation = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+        animation.setAttribute('attributeName', 'transform');
+        animation.setAttribute('type', 'translate');
+        animation.setAttribute('from', '0 0');
+        animation.setAttribute('to', '100 0');
+        animation.setAttribute('dur', '1s');
+        animation.setAttribute('repeatCount', 'indefinite');
+        element.appendChild(animation);
+    }
+}
+
+document.querySelectorAll('.place, .transition').forEach(element => {
+    element.addEventListener('click', () => {
+        changeColor(element.id, '#ff0000');
+        animateElement(element.id);
+    });
+});
+]]></script>`
+
+func (img *svgImage) NewSvgSimulation(inject ...string) {
+	img.NewSvgImage(script)
+}
+
 // NewSvgImage creates a new Svg image for the Petri net model
-func (img *svgImage) NewSvgImage() {
+func (img *svgImage) NewSvgImage(inject ...string) {
 	x1, y1, width, height := img.getViewPort()
 	fmt.Fprintf(img.Writer, "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%v\" height=\"%v\" viewBox=\"%v %v %v %v\">", width, height, x1, y1, width, height)
+	for _, s := range inject {
+		fmt.Fprint(img.Writer, s)
+	}
 	img.Rect(0, 0, width, height+60, "fill=\"#ffffff\"")
 	img.WriteDefs()
 }

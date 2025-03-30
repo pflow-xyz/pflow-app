@@ -6,9 +6,16 @@ build of app.pflow.dev - no wallet connector - minimal build/viewer
 
 WIP
 ---
+- [ ] Review roadmap.md - consider deploying gnoland-only version first
+- [ ] gno.land version needs multi-token support
+- [ ] url-visualizer on gno.land to build out multi-step actions
+- [ ] in this project use ./static/form.html and ./static/model.svg as template
 
 BACKLOG
 -------
+- [ ] fix failing tests
+- [ ] complete upgrades for colored tokens
+- [ ] check backward-compatible support for URL formats
 ```
 /?foo=1&bar=1&baz=1
 ````
