@@ -130,13 +130,13 @@ func (img *svgImage) PlaceElement(label string, place metamodel.Place) {
 	if state, ok := img.State[label]; ok {
 		tokens = state
 	}
-	if tokens.Value > 0 {
-		if tokens.Value == 1 {
+	if tokens.Value[0] > 0 {
+		if tokens.Value[0] == 1 {
 			img.Circle(x, y, 2, "fill=\"#000000\" stroke=\"#000000\"")
-		} else if tokens.Value < 10 {
-			img.Text(x-4, y+5, tokens.String(), "font-size=\"large\"")
+		} else if tokens.Value[0] < 10 {
+			img.Text(x-4, y+5, tokens.String(0), "font-size=\"large\"")
 		} else {
-			img.Text(x-7, y+5, tokens.String(), "font-size=\"small\"")
+			img.Text(x-7, y+5, tokens.String(0), "font-size=\"small\"")
 		}
 	}
 	img.Gend()
@@ -178,7 +178,7 @@ func (img *svgImage) ArcElement(arc metamodel.Arrow) {
 		midX := (p.X + t.X) / 2
 		midY := (p.Y+t.Y)/2 - 8
 		weight := arc.Weight
-		img.Text(midX-4, midY+4, weight.String(), "font-size=\"small\"")
+		img.Text(midX-4, midY+4, weight.String(0), "font-size=\"small\"")
 	} else {
 		p = img.Model.Places[arc.Target]
 		t = img.Model.Transitions[arc.Source]
@@ -186,7 +186,7 @@ func (img *svgImage) ArcElement(arc metamodel.Arrow) {
 		midX := (t.X + p.X) / 2
 		midY := (t.Y+p.Y)/2 - 8
 		weight := arc.Weight
-		img.Text(midX-4, midY+4, weight.String(), "font-size=\"small\"")
+		img.Text(midX-4, midY+4, weight.String(0), "font-size=\"small\"")
 	}
 	img.Gend()
 }

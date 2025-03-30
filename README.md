@@ -14,6 +14,8 @@ https://pflow-app.fly.dev/
 
 * allow for an infinite canvas viewing experience
   * scaling of diagrams is not mobile friendly
+* support colored tokens i.e. multiple token types
+  * currently pflow.xyz only supports a single token type
 * improve rendering to better support large models
   * current react app makes browser lag when loading sudoku (large model)
 * build in better import/export tools

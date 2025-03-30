@@ -58,8 +58,8 @@ func ExportAsUrl(model *metamodel.Model) string {
 	for placeName, placeData := range model.Places {
 		params.Add("p", placeName)
 		params.Add("o", strconv.Itoa(placeData.Offset))
-		params.Add("i", placeData.Initial.String())
-		params.Add("c", placeData.Capacity.String())
+		params.Add("i", placeData.Initial.String(0))
+		params.Add("c", placeData.Capacity.String(0))
 		params.Add("x", strconv.Itoa(placeData.X))
 		params.Add("y", strconv.Itoa(placeData.Y))
 	}
@@ -84,7 +84,7 @@ func ExportAsUrl(model *metamodel.Model) string {
 	for _, arc := range model.Arrows {
 		params.Add("s", arc.Source)
 		params.Add("e", arc.Target)
-		params.Add("w", arc.Weight.String())
+		params.Add("w", arc.Weight.String(0))
 		if arc.Inhibit {
 			params.Add("n", "1")
 		}

@@ -6,10 +6,13 @@ export type ModelData = {
     arcs: Array<Arrow>;
 }
 
+// make token like the go type
+export type Token = Array<number>;
+
 export type Place = {
     offset: number;
-    initial?: number;
-    capacity?: number;
+    initial?: Token;
+    capacity?: Token;
     x: number;
     y: number;
 };
@@ -24,7 +27,7 @@ export type Transition = {
 export type Arrow = {
     source: string;
     target: string;
-    weight?: number;
+    weight?: Token;
     inhibit?: boolean;
 };
 
