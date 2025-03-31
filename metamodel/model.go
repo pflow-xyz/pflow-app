@@ -34,6 +34,7 @@ type Place struct {
 	Offset   int         `json:"offset"`
 	Initial  token.Token `json:"initial,omitempty"`  // Initial Token
 	Capacity token.Token `json:"capacity,omitempty"` // Capacity Token
+	Tokens   token.Token `json:"-"`                  // Current Tokens used for simulation
 	X        int         `json:"x"`
 	Y        int         `json:"y"`
 }

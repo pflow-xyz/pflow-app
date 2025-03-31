@@ -32,8 +32,8 @@
         {
             "tokens": [ "red", "green" ],
             "places": {
-                "p1": { "offset": 0, "initial": [1,0], "capacity":[0,0], "x": 70, "y": 250 },
-                "p2": { "offset": 1, "initial": [0,1], "capacity":[0,0], "x": 300, "y": 250 }
+                "p1": { "offset": 0, "initial": [1,0], "tokens": [1,0], "capacity":[0,0], "x": 70, "y": 250 },
+                "p2": { "offset": 1, "initial": [0,1], "tokens": [0,1], "capacity":[0,0], "x": 300, "y": 250 }
             },
             "transitions": {
                 "t1": { "x": 190, "y": 150 }
@@ -86,18 +86,13 @@
 
           function createElements() {
               const svg = document.querySelector("svg");
-              // REVIEW optionally load petriNet from URL
-              // console.log('search', window.location.search);
-
-              // Clear existing elements
-              document.querySelectorAll(".place, .transition, .arc, .label").forEach(e => e.remove());
+              const fragment = document.createDocumentFragment();
 
               // Create arcs
               petriNet.arcs.forEach(arc => {
                   const source = petriNet.places[arc.source] || petriNet.transitions[arc.source];
                   const target = petriNet.places[arc.target] || petriNet.transitions[arc.target];
                   if (!source || !target) {
-                      console.log(petriNet, arc);
                       console.error(`Source or target not found for arc: ${arc}`);
                       return;
                   }
@@ -110,22 +105,22 @@
                   path.setAttribute("x2", x2);
                   path.setAttribute("y2", y2);
                   path.setAttribute("marker-end", "url(#markerArrow1)");
-                  svg.appendChild(path);
+                  fragment.appendChild(path);
 
                   angle = Math.atan2(y2 - y1, x2 - x1);
                   let x = 0
                   let y = 0
 
+                  // REVIEW: really need to move label left or right based on weight (offset for text)
                   if (x2 < x1) {
-                      x = midX + 7 * Math.cos(angle + Math.PI / 2);
+                      x = midX + 20 * Math.cos(angle + Math.PI / 2);
                       y = midY + 7 * Math.sin(angle + Math.PI / 2);
                   } else {
-                      x = midX - 7 * Math.cos(angle + Math.PI / 2);
+                      x = midX - 20 * Math.cos(angle + Math.PI / 2);
                       y = midY - 7 * Math.sin(angle + Math.PI / 2);
                   }
 
-
-                  let color = "black";
+                  let color = "black"; // colorize token weights
                   for (let i = 0; i < arc.weight.length; i++) {
                       if (arc.weight[i] > 0) {
                           color = petriNet.tokens[i];
@@ -134,13 +129,11 @@
                   }
 
                   let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                  //text.setAttribute("x", midX );
-                  //text.setAttribute("y", midY );
-                  text.setAttribute("x", x-4);
+                  text.setAttribute("x", x);
                   text.setAttribute("y", y);
                   text.setAttribute("class", "label "+color);
                   text.textContent = arc.weight[0];
-                  svg.appendChild(text);
+                  fragment.appendChild(text);
               });
 
               // Create places
@@ -151,37 +144,40 @@
                   circle.setAttribute("cx", place.x);
                   circle.setAttribute("cy", place.y);
                   circle.setAttribute("r", "16");
-                  svg.appendChild(circle);
+                  fragment.appendChild(circle);
 
                   let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                   text.setAttribute("x", place.x - 18);
                   text.setAttribute("y", place.y - 20);
                   text.setAttribute("class", "label");
                   text.textContent = id.toUpperCase();
-                  svg.appendChild(text);
+                  fragment.appendChild(text);
               });
 
               // Create transitions
               Object.entries(petriNet.transitions).forEach(([id, transition]) => {
-              let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    rect.setAttribute("id", id);
-                    rect.setAttribute("class", "transition");
-                    rect.setAttribute("x", transition.x - 15);
-                    rect.setAttribute("y", transition.y - 15);
-                    rect.setAttribute("rx", "5");
-                    rect.setAttribute("width", "30");
-                    rect.setAttribute("height", "30");
-                    svg.appendChild(rect);
+                  let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                  rect.setAttribute("id", id);
+                  rect.setAttribute("class", "transition");
+                  rect.setAttribute("x", transition.x - 15);
+                  rect.setAttribute("y", transition.y - 15);
+                  rect.setAttribute("rx", "5");
+                  rect.setAttribute("width", "30");
+                  rect.setAttribute("height", "30");
+                  fragment.appendChild(rect);
 
-                    let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    text.setAttribute("x", transition.x - 15);
-                    text.setAttribute("y", transition.y - 20);
-                    text.setAttribute("class", "label");
-                    text.textContent = id.toUpperCase();
-                    svg.appendChild(text);
+                  let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                  text.setAttribute("x", transition.x - 15);
+                  text.setAttribute("y", transition.y - 20);
+                  text.setAttribute("class", "label");
+                  text.textContent = id.toUpperCase();
+                  fragment.appendChild(text);
 
-                    rect.addEventListener('click', () => fireTransition(id));
+                  rect.addEventListener('click', () => fireTransition(id));
               });
+
+              document.querySelectorAll(".place, .transition, .arc, .label").forEach(e => e.remove());
+              svg.appendChild(fragment);
           }
 
           function fireTransition(id) {
@@ -196,12 +192,12 @@
               let canFire = true;
               sourceArcs.forEach(arc => {
                   let place = petriNet.places[arc.source];
-                  for (i = 0; i < place.initial.length; i++) {
-                      if (arc.weight[i] > place.initial[i]) {
+                  for (i = 0; i < place.tokens.length; i++) {
+                      if (arc.weight[i] > place.tokens[i]) {
                           canFire = false;
                           break;
                       }
-                      if (place.capacity[i] > 0 && place.initial[i] + arc.weight[i] > place.capacity[i]) {
+                      if (place.capacity[i] > 0 && place.tokens[i] + arc.weight[i] > place.capacity[i]) {
                           canFire = false;
                           break;
                       }
@@ -211,14 +207,14 @@
               if (canFire) {
                   sourceArcs.forEach(arc => {
                       let place = petriNet.places[arc.source];
-                        for (i = 0; i < place.initial.length; i++) {
-                            place.initial[i] -= arc.weight[i];
+                        for (i = 0; i < place.tokens.length; i++) {
+                            place.tokens[i] -= arc.weight[i];
                         }
                   });
                   targetArcs.forEach(arc => {
                       let place = petriNet.places[arc.target];
-                        for (i = 0; i < place.initial.length; i++) {
-                            place.initial[i] += arc.weight[i];
+                        for (i = 0; i < place.tokens.length; i++) {
+                            place.tokens[i] += arc.weight[i];
                         }
                   });
                   updateTokens();
@@ -249,7 +245,6 @@
             }
           }
 
-          // add table at bottom of svg
           function createTokenBalance(id, tokenId, tokens, x, y) {
             let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
             text.setAttribute("x", x);
@@ -270,26 +265,22 @@
               y = 340;
               document.querySelectorAll(".balance").forEach(e => { e.remove() });
               for (let id in petriNet.places) {
-                for (let i = 0; i < petriNet.places[id].initial.length; i++) {
-                    createTokenBalance(id, i, petriNet.places[id].initial[i], x, y);
+                for (let i = 0; i < petriNet.places[id].tokens.length; i++) {
+                    createTokenBalance(id, i, petriNet.places[id].tokens[i], x, y);
                     x += 50;
                 }
               }
           }
 
-
           function updateTokens() {
               document.querySelectorAll(".token").forEach(e => e.remove());
-              Object.entries(petriNet.places).forEach(([id, place]) => createToken(id, place.initial));
+              Object.entries(petriNet.places).forEach(([id, place]) => createToken(id, place.tokens));
               updateTokenBalance();
           }
 
           function resetPetriNet() {
               Object.entries(petriNet.places).forEach(([id, place]) => {
-              if (id === "p1")
-                  place.initial = [1,0];
-                else
-                  place.tokens = [0,0];
+                  place.tokens = [...place.initial];
               });
               createElements();
               updateTokens();

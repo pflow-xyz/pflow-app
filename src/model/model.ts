@@ -17,6 +17,7 @@ export type Place = {
     offset: number;
     initial?: Token;
     capacity?: Token;
+    tokens?: Token; // optional, used for simulation
     x: number;
     y: number;
 };
