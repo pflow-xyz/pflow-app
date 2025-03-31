@@ -9,6 +9,10 @@ export type ModelData = {
 // make token like the go type
 export type Token = Array<number>;
 
+export function T(...args: (number | string)[]): Token {
+    return args.map(arg => Number(arg) || 0);
+}
+
 export type Place = {
     offset: number;
     initial?: Token;
@@ -183,16 +187,16 @@ export function importFromMinUrl(url: string): ModelData {
                 break;
             case 'p':
                 currentPlace = decodedValue;
-                model.places[currentPlace] = {initial: 0, capacity: 0} as Place;
+                model.places[currentPlace] = { capacity: T(0), initial: T(0), offset: -1, x: 0, y: 0 } as Place;
                 break;
             case 'o':
                 if (currentPlace) model.places[currentPlace].offset = Number(decodedValue);
                 break;
             case 'i':
-                if (currentPlace) model.places[currentPlace].initial = Number(decodedValue) || 0;
+                if (currentPlace) model.places[currentPlace].initial = T(decodedValue);
                 break;
             case 'c':
-                if (currentPlace) model.places[currentPlace].capacity = Number(decodedValue) || 0;
+                if (currentPlace) model.places[currentPlace].capacity = T(decodedValue);
                 break;
             case 'x':
                 if (currentPlace) model.places[currentPlace].x = Number(decodedValue);
@@ -211,7 +215,7 @@ export function importFromMinUrl(url: string): ModelData {
                 currentPlace = null;
                 currentTransition = null;
                 currentArc = model.arcs.length;
-                model.arcs.push({source: decodedValue, target: '', inhibit: false, weight: 1});
+                model.arcs.push({source: decodedValue, target: '', inhibit: false, weight: T(1)});
                 break;
             case 'e':
                 if (currentArc !== null) model.arcs[currentArc].target = decodedValue;
@@ -220,7 +224,7 @@ export function importFromMinUrl(url: string): ModelData {
                 if (currentArc !== null) model.arcs[currentArc].inhibit = decodedValue === "1";
                 break;
             case 'w':
-                if (currentArc !== null) model.arcs[currentArc].weight = Number(decodedValue);
+                if (currentArc !== null) model.arcs[currentArc].weight = T(decodedValue);
                 break;
             default:
                 break;
@@ -306,7 +310,7 @@ export function importFromUrl(url: string): ModelData {
                 currentPlace = decodedValue;
                 currentTransition = null;
                 currentArc = null;
-                model.places[currentPlace] = {initial: 0, capacity: 0} as Place;
+                model.places[currentPlace] = { capacity: T(0), initial: T(0), offset: -1, x: 0, y: 0 } as Place;
                 break;
             case 'transition':
                 currentTransition = decodedValue;
@@ -318,7 +322,7 @@ export function importFromUrl(url: string): ModelData {
                 currentArc = model.arcs.length;
                 currentPlace = null;
                 currentTransition = null;
-                model.arcs.push({source: decodedValue, target: '', inhibit: false, weight: 1});
+                model.arcs.push({source: decodedValue, target: '', inhibit: false, weight: T(1)});
                 break;
             case 'target':
                 if (currentArc !== null) model.arcs[currentArc].target = decodedValue;

@@ -3,76 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pflow | metamodel</title>
+    <title>model.svg</title>
     <style>
-        table {
-            border-collapse: collapse;
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
-
-        th, td {
+        object {
+            float: left;
             border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
+            padding: 5px;
         }
     </style>
 </head>
 <body>
-    <table>
-        <thead style="font-weight: bold;">
-            <tr><td colspan="2">Example</td></tr>
-        </thead>
-        <tr>
-            <td><a href="./index.html">index.html</a></td>
-            <td> index of examples </td>
-        </tr>
-        <tr>
-            <td><a href="iframe.html">widget.html</a></td>
-            <td> iframe embedding </td>
-        </tr>
-        <tr>
-            <td>
-                <a href="./short_url.html?m=PetriNet&v=v0&p=place0&o=0&i=1&c=3&x=130&y=207&p=place1&o=1&i=0&c=0&x=395&y=299&t=txn0&x=46&y=116&t=txn1&x=227&y=112&t=txn2&x=43&y=307&t=txn3&x=235&y=306&s=txn0&e=place0&w=1&s=place0&e=txn1&w=3&s=txn2&e=place0&w=3&n=1&s=place0&e=txn3&w=1&n=1&s=txn3&e=place1&w=1">
-                    short_url.html
-                </a>
-            </td>
-            <td> load net from encoded url</td>
-        </tr>
-        <tr>
-            <td><a href="./model.html">model.html</a></td>
-            <td> interactive model using object tag</td>
-        </tr>
-        <tr>
-            <td><a href="./model.svg">model.svg</a></td>
-            <td> render interactive model in svg</td>
-        </tr>
-        <tr>
-            <td><a href="./qr.html">qr.html</a></td>
-            <td>render QR in html</td>
-        </tr>
-        <tr>
-            <td><a href="./qr.svg?data=example.com">qr.svg</a></td>
-            <td> render qr using svg</td>
-        </tr>
-        <tr>
-            <td><a href="./form.html">form.html</a></td>
-            <td>QR render form</td>
-        </tr>
-        <tr>
-            <td><a href="./form.svg">form.svg</a></td>
-            <td>QR svg form</td>
-        </tr>
-        <tr>
-            <td><a href="./post_message.html">post_message.html</a></td>
-            <td>post messages to svg</td>
-        </tr>
-        <tr>
-            <td><a href="./sandbox.html">sandbox.html</a></td>
-            <td>host svg in sandboxed iframe</td>
-        </tr>
-    </table>
+    <object  type="image/svg+xml" data="./model.svg"></object>
 </body>
 </html>
