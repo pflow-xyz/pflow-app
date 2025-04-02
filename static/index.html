@@ -10,14 +10,25 @@
             padding: 0;
             overflow: hidden;
         }
-        object {
-            float: left;
-            border: 1px solid black;
-            padding: 5px;
-        }
     </style>
 </head>
 <body>
-    <object  type="image/svg+xml" data="./model.svg"></object>
+    <object  id="svgObject" type="image/svg+xml" data="./model.svg"></object>
+    <script>
+        function resizeSVG() {
+            const svgObject = document.getElementById('svgObject');
+            if (!svgObject || !svgObject.contentWindow) {
+                console.error('SVG object not found or not loaded yet.');
+                return;
+            }
+            const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+            const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+            svgObject.contentWindow.postMessage({ type: 'resize', width, height }, '*');
+        }
+
+        window.addEventListener('resize', resizeSVG);
+        window.addEventListener('load', resizeSVG);
+        document.addEventListener('DOMContentLoaded', resizeSVG);
+    </script>
 </body>
 </html>
