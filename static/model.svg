@@ -193,6 +193,11 @@
                     }
                 });
                 updateTokens();
+                window.parent.postMessage({
+                    type: 'transitionFired',
+                    transitionId: id,
+                    petriNet: petriNet
+                }, '*'); // Notify parent window of the transition fire
             } else {
                 console.log("Transition cannot fire");
             }
