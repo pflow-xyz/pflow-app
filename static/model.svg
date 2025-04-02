@@ -315,6 +315,10 @@
                     console.error("Failed to set model: ", error);
                 }
             }
+            if (event.data.type === 'restart') {
+                console.log("Resetting Petri Net to initial state");
+                resetPetriNet();
+            }
         });
 
         window.addEventListener('load', init);
