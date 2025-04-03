@@ -4,12 +4,21 @@ export type ModelData = {
     places: Record<string, Place>;
     transitions: Record<string, Transition>;
     arcs: Array<Arrow>;
+    tokens?: Array<string>; // optional, used for simulation
+}
+
+// make token like the go type
+export type Token = Array<number>;
+
+export function T(...args: (number | string)[]): Token {
+    return args.map(arg => Number(arg) || 0);
 }
 
 export type Place = {
     offset: number;
-    initial?: number;
-    capacity?: number;
+    initial?: Token;
+    capacity?: Token;
+    tokens?: Token; // optional, used for simulation
     x: number;
     y: number;
 };
@@ -24,7 +33,7 @@ export type Transition = {
 export type Arrow = {
     source: string;
     target: string;
-    weight?: number;
+    weight?: Token;
     inhibit?: boolean;
 };
 
@@ -49,6 +58,10 @@ export class Model {
 
     static fromBase64(base64: string): Model {
         return new Model(JSON.parse(atob(base64)));
+    }
+
+    toJson(): string {
+        return toJson(this);
     }
 
     toBase64(): string {
@@ -158,6 +171,7 @@ export function importFromMinUrl(url: string): ModelData {
     const model: ModelData = {
         modelType: '',
         version: '',
+        tokens:["black"],
         places: {},
         transitions: {},
         arcs: []
@@ -180,16 +194,16 @@ export function importFromMinUrl(url: string): ModelData {
                 break;
             case 'p':
                 currentPlace = decodedValue;
-                model.places[currentPlace] = {initial: 0, capacity: 0} as Place;
+                model.places[currentPlace] = { capacity: T(0), initial: T(0), offset: -1, x: 0, y: 0 } as Place;
                 break;
             case 'o':
                 if (currentPlace) model.places[currentPlace].offset = Number(decodedValue);
                 break;
             case 'i':
-                if (currentPlace) model.places[currentPlace].initial = Number(decodedValue) || 0;
+                if (currentPlace) model.places[currentPlace].initial = T(decodedValue);
                 break;
             case 'c':
-                if (currentPlace) model.places[currentPlace].capacity = Number(decodedValue) || 0;
+                if (currentPlace) model.places[currentPlace].capacity = T(decodedValue);
                 break;
             case 'x':
                 if (currentPlace) model.places[currentPlace].x = Number(decodedValue);
@@ -208,7 +222,7 @@ export function importFromMinUrl(url: string): ModelData {
                 currentPlace = null;
                 currentTransition = null;
                 currentArc = model.arcs.length;
-                model.arcs.push({source: decodedValue, target: '', inhibit: false, weight: 1});
+                model.arcs.push({source: decodedValue, target: '', inhibit: false, weight: T(1)});
                 break;
             case 'e':
                 if (currentArc !== null) model.arcs[currentArc].target = decodedValue;
@@ -217,7 +231,7 @@ export function importFromMinUrl(url: string): ModelData {
                 if (currentArc !== null) model.arcs[currentArc].inhibit = decodedValue === "1";
                 break;
             case 'w':
-                if (currentArc !== null) model.arcs[currentArc].weight = Number(decodedValue);
+                if (currentArc !== null) model.arcs[currentArc].weight = T(decodedValue);
                 break;
             default:
                 break;
@@ -303,7 +317,7 @@ export function importFromUrl(url: string): ModelData {
                 currentPlace = decodedValue;
                 currentTransition = null;
                 currentArc = null;
-                model.places[currentPlace] = {initial: 0, capacity: 0} as Place;
+                model.places[currentPlace] = { capacity: T(0), initial: T(0), offset: -1, x: 0, y: 0 } as Place;
                 break;
             case 'transition':
                 currentTransition = decodedValue;
@@ -315,7 +329,7 @@ export function importFromUrl(url: string): ModelData {
                 currentArc = model.arcs.length;
                 currentPlace = null;
                 currentTransition = null;
-                model.arcs.push({source: decodedValue, target: '', inhibit: false, weight: 1});
+                model.arcs.push({source: decodedValue, target: '', inhibit: false, weight: T(1)});
                 break;
             case 'target':
                 if (currentArc !== null) model.arcs[currentArc].target = decodedValue;
@@ -341,8 +355,78 @@ export function importFromUrl(url: string): ModelData {
     return model;
 }
 
+export function toJson(model: ModelData): string {
+    var json = "{\n";
+    json += `  "modelType": "${model.modelType}",\n`;
+    json += `  "version": "${model.version}",\n`;
+    json += `  "tokens": [`;
+    if (model.tokens && model.tokens.length > 0) {
+        json += `"${model.tokens.join('", "')}"`;
+    } else {
+        json += `"black"`; // default token
+    }
+    json += `],\n`; // close tokens
+    json += `  "places": {\n`;
+    const places = Object.entries(model.places);
+    for (let i = 0; i < places.length; i++) {
+        const [placeName, placeData] = places[i];
+        json += `    "${placeName}": {`;
+        json += `"offset": ${placeData.offset},`;
+        if (placeData.initial) {
+            json += `"initial": [${placeData.initial.join(",")}],`;
+        }
+        if (placeData.capacity) {
+            json += `"capacity": [${placeData.capacity.join(",")}],`;
+        }
+        json += `"x": ${placeData.x}, "y": ${placeData.y}`;
+        json += (i < places.length - 1) ? "},\n" : "}\n";
+    }
+
+    json += `  },\n`;
+
+    // Handle transitions
+    json += `  "transitions": {\n`;
+
+    const transitions = Object.entries(model.transitions);
+
+    for (let i = 0; i < transitions.length; i++) {
+        const [transitionName, transitionData] = transitions[i];
+        json += `    "${transitionName}": {`;
+        if (transitionData.offset !== undefined) {
+            json += `"offset": ${transitionData.offset},`;
+        }
+        if (transitionData.role) {
+            json += `"role": "${transitionData.role}",`;
+        }
+        json += `"x": ${transitionData.x}, "y": ${transitionData.y}`;
+        json += (i < transitions.length - 1) ? "},\n" : "}\n";
+    }
+
+    json += `  },\n`; // close transitions
+
+    json += `  "arcs": [\n`;
+    const arcs = model.arcs;
+
+    for (let i = 0; i < arcs.length; i++) {
+        const arc = arcs[i];
+        json += `    {`;
+        json += `"source": "${arc.source}",`;
+        json += `"target": "${arc.target}"`;
+        if (arc.weight) {
+            json += `, "weight": [${arc.weight.join(",")}]`;
+        }
+        if (arc.inhibit) {
+            json += `, "inhibit": true`;
+        }
+        json += (i < arcs.length - 1) ? `},\n` : `}\n`;
+    }
+    json += `  ]\n`;
+    json += `}\n`;
+    return json
+}
+
 export function toBase64(model: ModelData): string {
-    return btoa(JSON.stringify(model))
+    return btoa(toJson(model))
 }
 
 export function toImage(model: ModelData): string {

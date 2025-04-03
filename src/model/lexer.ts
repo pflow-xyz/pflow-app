@@ -1,9 +1,4 @@
 enum TokenType {
-    Terminal,
-    NonTerminal,
-    Sequence,
-    ZeroOrMore,
-    Optional,
     Ampersand,
     Equals,
     Slash,

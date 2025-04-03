@@ -73,10 +73,49 @@ func (img *svgImage) getViewPort() (x1 int, y1 int, width int, height int) {
 	return x1, y1, x2 - x1, y2 - y1
 }
 
+const script = `<script type="text/ecmascript"><![CDATA[
+console.log('SVG loaded');
+
+function changeColor(elementId, color) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.setAttribute('fill', color);
+    }
+}
+
+function animateElement(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        const animation = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+        animation.setAttribute('attributeName', 'transform');
+        animation.setAttribute('type', 'translate');
+        animation.setAttribute('from', '0 0');
+        animation.setAttribute('to', '100 0');
+        animation.setAttribute('dur', '1s');
+        animation.setAttribute('repeatCount', 'indefinite');
+        element.appendChild(animation);
+    }
+}
+
+document.querySelectorAll('.place, .transition').forEach(element => {
+    element.addEventListener('click', () => {
+        changeColor(element.id, '#ff0000');
+        animateElement(element.id);
+    });
+});
+]]></script>`
+
+func (img *svgImage) NewSvgSimulation(inject ...string) {
+	img.NewSvgImage(script)
+}
+
 // NewSvgImage creates a new Svg image for the Petri net model
-func (img *svgImage) NewSvgImage() {
+func (img *svgImage) NewSvgImage(inject ...string) {
 	x1, y1, width, height := img.getViewPort()
 	fmt.Fprintf(img.Writer, "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%v\" height=\"%v\" viewBox=\"%v %v %v %v\">", width, height, x1, y1, width, height)
+	for _, s := range inject {
+		fmt.Fprint(img.Writer, s)
+	}
 	img.Rect(0, 0, width, height+60, "fill=\"#ffffff\"")
 	img.WriteDefs()
 }
@@ -130,13 +169,13 @@ func (img *svgImage) PlaceElement(label string, place metamodel.Place) {
 	if state, ok := img.State[label]; ok {
 		tokens = state
 	}
-	if tokens.Value > 0 {
-		if tokens.Value == 1 {
+	if tokens.Value[0] > 0 {
+		if tokens.Value[0] == 1 {
 			img.Circle(x, y, 2, "fill=\"#000000\" stroke=\"#000000\"")
-		} else if tokens.Value < 10 {
-			img.Text(x-4, y+5, tokens.String(), "font-size=\"large\"")
+		} else if tokens.Value[0] < 10 {
+			img.Text(x-4, y+5, tokens.String(0), "font-size=\"large\"")
 		} else {
-			img.Text(x-7, y+5, tokens.String(), "font-size=\"small\"")
+			img.Text(x-7, y+5, tokens.String(0), "font-size=\"small\"")
 		}
 	}
 	img.Gend()
@@ -178,7 +217,7 @@ func (img *svgImage) ArcElement(arc metamodel.Arrow) {
 		midX := (p.X + t.X) / 2
 		midY := (p.Y+t.Y)/2 - 8
 		weight := arc.Weight
-		img.Text(midX-4, midY+4, weight.String(), "font-size=\"small\"")
+		img.Text(midX-4, midY+4, weight.String(0), "font-size=\"small\"")
 	} else {
 		p = img.Model.Places[arc.Target]
 		t = img.Model.Transitions[arc.Source]
@@ -186,7 +225,7 @@ func (img *svgImage) ArcElement(arc metamodel.Arrow) {
 		midX := (t.X + p.X) / 2
 		midY := (t.Y+p.Y)/2 - 8
 		weight := arc.Weight
-		img.Text(midX-4, midY+4, weight.String(), "font-size=\"small\"")
+		img.Text(midX-4, midY+4, weight.String(0), "font-size=\"small\"")
 	}
 	img.Gend()
 }

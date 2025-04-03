@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// REVIEW likey needs to support csv 0,1,1,0
 func TokenFromString(s string) token.Token {
 	var i int64
 	i, _ = strconv.ParseInt(s, 10, 64)
@@ -33,6 +34,7 @@ type Place struct {
 	Offset   int         `json:"offset"`
 	Initial  token.Token `json:"initial,omitempty"`  // Initial Token
 	Capacity token.Token `json:"capacity,omitempty"` // Capacity Token
+	Tokens   token.Token `json:"-"`                  // Current Tokens used for simulation
 	X        int         `json:"x"`
 	Y        int         `json:"y"`
 }
@@ -58,8 +60,8 @@ func (model *Model) Transform(state []token.Token, action string, multiple int64
 		return state, false
 	}
 	newState := make([]token.Token, len(state))
-	for k, token := range state {
-		newState[k] = token.Copy()
+	for k, t := range state {
+		newState[k] = t.Copy()
 	}
 	for _, arc := range model.Arrows {
 		if arc.Target == action {

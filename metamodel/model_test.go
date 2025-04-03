@@ -8,16 +8,14 @@ import (
 	"testing"
 )
 
-func token(i int) Token {
-	return Token{[]int64{int64(i)}}
-}
+// TODO: support multiple tokens
 
 var exampleModel = Model{
 	ModelType: "PetriNet",
 	Version:   "v0",
 	Places: map[string]Place{
-		"place0": {Offset: 0, Initial: token(1), Capacity: token(3), X: 130, Y: 207},
-		"place1": {Offset: 1, Initial: token(0), Capacity: token(0), X: 395, Y: 299},
+		"place0": {Offset: 0, Initial: T(1), Capacity: T(3), X: 130, Y: 207},
+		"place1": {Offset: 1, Initial: T(0), Capacity: T(0), X: 395, Y: 299},
 	},
 	Transitions: map[string]Transition{
 		"txn0": {X: 46, Y: 116},
@@ -26,11 +24,11 @@ var exampleModel = Model{
 		"txn3": {X: 235, Y: 306},
 	},
 	Arrows: []Arrow{
-		{Source: "txn0", Target: "place0", Weight: token(1)},
-		{Source: "place0", Target: "txn1", Weight: token(3)},
-		{Source: "txn2", Target: "place0", Weight: token(3), Inhibit: true},
-		{Source: "place0", Target: "txn3", Weight: token(1), Inhibit: true},
-		{Source: "txn3", Target: "place1", Weight: token(1)},
+		{Source: "txn0", Target: "place0", Weight: T(1)},
+		{Source: "place0", Target: "txn1", Weight: T(3)},
+		{Source: "txn2", Target: "place0", Weight: T(3), Inhibit: true},
+		{Source: "place0", Target: "txn3", Weight: T(1), Inhibit: true},
+		{Source: "txn3", Target: "place1", Weight: T(1)},
 	},
 }
 
