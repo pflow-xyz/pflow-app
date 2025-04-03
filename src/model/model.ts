@@ -60,6 +60,10 @@ export class Model {
         return new Model(JSON.parse(atob(base64)));
     }
 
+    toJson(): string {
+        return toJson(this);
+    }
+
     toBase64(): string {
         return btoa(JSON.stringify(this));
     }
@@ -167,6 +171,7 @@ export function importFromMinUrl(url: string): ModelData {
     const model: ModelData = {
         modelType: '',
         version: '',
+        tokens:["black"],
         places: {},
         transitions: {},
         arcs: []
@@ -350,8 +355,78 @@ export function importFromUrl(url: string): ModelData {
     return model;
 }
 
+export function toJson(model: ModelData): string {
+    var json = "{\n";
+    json += `  "modelType": "${model.modelType}",\n`;
+    json += `  "version": "${model.version}",\n`;
+    json += `  "tokens": [`;
+    if (model.tokens && model.tokens.length > 0) {
+        json += `"${model.tokens.join('", "')}"`;
+    } else {
+        json += `"black"`; // default token
+    }
+    json += `],\n`; // close tokens
+    json += `  "places": {\n`;
+    const places = Object.entries(model.places);
+    for (let i = 0; i < places.length; i++) {
+        const [placeName, placeData] = places[i];
+        json += `    "${placeName}": {`;
+        json += `"offset": ${placeData.offset},`;
+        if (placeData.initial) {
+            json += `"initial": "${placeData.initial.toString()}",`;
+        }
+        if (placeData.capacity) {
+            json += `"capacity": "${placeData.capacity.toString()}",`;
+        }
+        json += `"x": ${placeData.x}, "y": ${placeData.y}`;
+        json += (i < places.length - 1) ? "},\n" : "}\n";
+    }
+
+    json += `  },\n`; // close places
+
+    // Handle transitions
+    json += `  "transitions": {\n`;
+
+    const transitions = Object.entries(model.transitions);
+
+    for (let i = 0; i < transitions.length; i++) {
+        const [transitionName, transitionData] = transitions[i];
+        json += `    "${transitionName}": {`;
+        if (transitionData.offset !== undefined) {
+            json += `"offset": ${transitionData.offset},`;
+        }
+        if (transitionData.role) {
+            json += `"role": "${transitionData.role}",`;
+        }
+        json += `"x": ${transitionData.x}, "y": ${transitionData.y}`;
+        json += (i < transitions.length - 1) ? "},\n" : "}\n";
+    }
+
+    json += `  },\n`; // close transitions
+
+    json += `  "arcs": [\n`;
+    const arcs = model.arcs;
+
+    for (let i = 0; i < arcs.length; i++) {
+        const arc = arcs[i];
+        json += `    {`;
+        json += `"source": "${arc.source}",`;
+        json += `"target": "${arc.target}"`;
+        if (arc.weight) {
+            json += `, "weight": "${arc.weight.toString()}"`;
+        }
+        if (arc.inhibit) {
+            json += `, "inhibit": true`;
+        }
+        json += (i < arcs.length - 1) ? `},\n` : `}\n`;
+    }
+    json += `  ]\n`;
+    json += `}\n`;
+    return json
+}
+
 export function toBase64(model: ModelData): string {
-    return btoa(JSON.stringify(model))
+    return btoa(toJson(model))
 }
 
 export function toImage(model: ModelData): string {

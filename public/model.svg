@@ -264,6 +264,16 @@
                         // Expecting a JSON string for the petri net
                         //petriNet = JSON.parse(event.data.model);
                         petriNet = event.data.model;
+                        // check for tokens
+                        if (!petriNet.tokens) {
+                            petriNet.tokens = ["black"]; // fallback to default
+                        }
+                        // populate place.tokens if not already set
+                        Object.entries(petriNet.places).forEach(([id, place]) => {
+                            if (!place.tokens || place.tokens.length === 0) {
+                                place.tokens = [...place.initial]; // fallback to initial if tokens not set
+                            }
+                        });
                         createElements();
                         updateTokens();
                     } catch (error) {
