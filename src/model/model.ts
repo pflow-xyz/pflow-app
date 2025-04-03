@@ -4,6 +4,7 @@ export type ModelData = {
     places: Record<string, Place>;
     transitions: Record<string, Transition>;
     arcs: Array<Arrow>;
+    tokens?: Array<string>; // optional, used for simulation
 }
 
 // make token like the go type

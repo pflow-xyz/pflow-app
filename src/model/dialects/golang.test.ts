@@ -12,15 +12,15 @@ describe('parseModel', () => {
         Places: {
             "place1": {
                 Offset: 0,
-                Initial: 1,
-                Capacity: 10,
+                Initial: [1],
+                Capacity: [10],
                 X: 100,
                 Y: 200
             },
             "place2": {
                 Offset: 1,
-                Initial: 0,
-                Capacity: 5,
+                Initial: [0],
+                Capacity: [5],
                 X: 150,
                 Y: 250
             }
@@ -35,7 +35,7 @@ describe('parseModel', () => {
             {
                 Source: "place1",
                 Target: "transition1",
-                Weight: 1,
+                Weight: [1],
                 Inhibit: false
             }
         ]
@@ -46,14 +46,14 @@ describe('parseModel', () => {
       modelType: 'PetriNet',
       version: 'v0',
       places: {
-        place1: { offset: 0, initial: 1, capacity: 10, x: 100, y: 200 },
-        place2: { offset: 1, initial: 0, capacity: 5, x: 150, y: 250 }
+        place1: { offset: 0, initial: [1], capacity: [10], x: 100, y: 200 },
+        place2: { offset: 1, initial: [0], capacity: [5], x: 150, y: 250 }
       },
       transitions: {
         transition1: { x: 300, y: 400 }
       },
       arcs: [
-        { source: 'place1', target: 'transition1', weight: 1, inhibit: false }
+        { source: 'place1', target: 'transition1', weight: [1], inhibit: false }
       ]
     };
 

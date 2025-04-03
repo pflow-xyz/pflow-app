@@ -1,72 +1,58 @@
-import React from 'react'
-import {Model, ModelData, importUrl} from './model/model'
+import React, { useEffect } from 'react';
+import { Model, importUrl } from './model/model';
 import './App.css';
 
-const model: ModelData = {
-    "modelType": "petriNet",
+const model: any = {
     "version": "v0",
+    "tokens": ["black"],
     "places": {
-        "place0": {"offset": 0, "initial": 1, "capacity": 3, "x": 130, "y": 207},
-        "place1": {"offset": 1, "x": 395, "y": 299}
+        "p1": { "offset": 0, "initial": [1], "tokens": [1], "capacity": [0], "x": 70, "y": 250 },
+        "p2": { "offset": 1, "initial": [0], "tokens": [0], "capacity": [0], "x": 300, "y": 250 },
+        "p3": { "offset": 1, "initial": [0], "tokens": [0], "capacity": [0], "x": 200, "y": 350 }
     },
     "transitions": {
-        "txn0": {"x": 46, "y": 116},
-        "txn1": {"x": 227, "y": 112},
-        "txn2": {"x": 43, "y": 307},
-        "txn3": {"x": 235, "y": 306}
+        "t1": { "x": 190, "y": 150 },
+        "t2": { "x": 190, "y": 250 }
     },
     "arcs": [
-        {"source": "txn0", "target": "place0"},
-        {"source": "place0", "target": "txn1", "weight": 3},
-        {"source": "txn2", "target": "place0", "weight": 3, "inhibit": true},
-        {"source": "place0", "target": "txn3", "inhibit": true},
-        {"source": "txn3", "target": "place1"}
+        { "source": "p1", "target": "t1", "weight": [1] },
+        { "source": "t1", "target": "p2", "weight": [1] }
     ]
-}
+};
 
-
-function EmbeddedImport(): React.ReactElement {
-    var imported = null;
-    if (!window.location.search) {
-        return <React.Fragment/>
-    }
-    imported = importUrl(window.location.search);
-    const m : Model = new Model(imported);
-    return <foreignObject x="600" y="0" width="500" height="500">
-        <a href={m.toUrl()} target="_blank" rel="noreferrer">
-            <img src={m.toImage()} alt="test"/>
-        </a>
-        <br/>
-        <a href={m.toMinUrl()}>
-            Re-encoded Url model
-        </a>
-    </foreignObject>
-
-}
 
 function App() {
-    const m = new Model(model);
-    // REVIEW: consider using an Object here to isolate the model from the rest of the code
-    // react components will be able to access the model through props
-    // - really we just need to publish the model App -> EmbeddedImport
+    useEffect(() => {
+        const svg = document.getElementById('svgObject') as HTMLObjectElement;
+        if (svg) {
+            svg.addEventListener('load', () => {
+            // load from URL if needed
+            var imported = null;
+            if (window.location.search) {
+                imported = importUrl(window.location.search);
+            }
+            //const m: Model = new Model(imported);
+            if (svg.contentWindow) {
+                if (imported?.version === "v0") {
+                    svg.contentWindow.postMessage({ type: 'setModel', model: imported }, '*');
+                } else {
+                    svg.contentWindow.postMessage({ type: 'setModel', model: model }, '*');
+                }
+                console.log('Model sent to SVG:', model);
+            } else {
+                console.error('SVG contentWindow not available.');
+            }
+            });
+        } else {
+            console.error('SVG object not found.');
+        }
+    }, []);
+
     return (
         <svg width={1500} height={1000} viewBox="0 0 1500 1000" xmlns="http://www.w3.org/2000/svg">
-            <foreignObject x="100" y="0" width="1500" height="1000">
-                <a href={m.toUrl()} target="_blank" rel="noreferrer">
-                    <img src={m.toImage()} alt="test"/>
-                </a>
-                <br/>< br/>
-                <a href={"?"}> Back &lt;- </a>
-                <br/>< br/>
-                <a href={m.toUrl()}>
-                    Url-encoded model -&gt;
-                </a>
-                <br/>< br/>
-                <a href={m.toMinUrl()}>
-                    MinUrl-encoded model -&gt;
-                </a>
+            <foreignObject height="100%" width="100%" x="0" y="0">
+                <object id="svgObject" type="image/svg+xml" data="./model.svg"></object>
             </foreignObject>
-            <EmbeddedImport/>
         </svg>
     );
 }

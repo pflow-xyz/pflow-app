@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>model.svg</title>
+    <title>pflow | model.svg</title>
     <style>
         body {
             background-color: #f0f0f0;
@@ -34,6 +34,28 @@
         #history {
             border: 1px solid black;
         }
+        .history-item {
+            fill: #fff;
+            stroke: #ccc;
+            stroke-width: 1;
+            opacity: 0.5;
+            width: 200px;
+            height: 17px;
+        }
+        #modelData {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 12px;
+            background-color: #fff;
+            overflow: auto;
+            resize: both;
+        }
+        #modelData:focus {
+            outline: darkgray;
+        }
     </style>
 </head>
 <body>
@@ -50,36 +72,62 @@
     </svg>
     <svg id="svgCanvas" width="100%" height="100%"  xmlns="http://www.w3.org/2000/svg">
         <foreignObject height="100%" width="100%" x="0" y="0">
-            <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:16px; color:#333;">
-                <object  id="svgObject" type="image/svg+xml" data="./model.svg"></object>
-            </div>
+            <object  id="svgObject" type="image/svg+xml" data="./model.svg"></object>
         </foreignObject>
-        <g id="playBtn" transform="translate(165, 10)" >
+        <g id="status" transform="translate(5, 607)" >
+            <rect x="0" y="0" width="140" height="20" fill="#fff" rx="5" ry="5"/>
+            <text x="10" y="15">Status: Ready</text>
+        </g>
+        <g id="playBtn" transform="translate(148, 604)" >
             <circle cx="12" cy="11" r="20" fill="transparent" stroke="transparent" stroke-width="2" />
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-2.5-3.5 7-4.5-7-4.5z"></path>
         </g>
-        <g id="history" transform="translate(5, 605)" style="font-size:12px; fill:#333; stroke:#ccc; stroke-width:1;">
-            <rect x="0" y="0" width="180" height="50" fill="#fff" rx="5" ry="5"/>
-            <text x="10" y="20">Petri Net Visualization</text>
-            <text x="10" y="40">Click the play button to start</text>
+        <g id="sourceButton" transform="translate(5, 570)" >
+            <!-- fixme -->
         </g>
+        <g id="history" transform="translate(5, 605)" ></g>
+    <foreignObject height="50%" width="98%" x="0" y="635">
+<textarea id="modelData">{
+    "tokens": ["black"],
+    "places": {
+        "p1": {"offset": 0, "initial": [1], "tokens": [1], "capacity": [0], "x": 70, "y": 250},
+        "p2": {"offset": 1, "initial": [0], "tokens": [0], "capacity": [0], "x": 300, "y": 250},
+        "p3": {"offset": 1, "initial": [0], "tokens": [0], "capacity": [0], "x": 200, "y": 350}
+    },
+    "transitions": {
+        "t1": {"x": 190, "y": 150},
+        "t2": {"x": 190, "y": 250}
+    },
+    "arcs": [
+        {"source": "p1", "target": "t1", "weight": [1]},
+        {"source": "t1", "target": "p2", "weight": [1]}
+    ]
+}</textarea>
+    </foreignObject>
     </svg>
     <script>
-        var model = {
-            "tokens": [ "black" ],
-            "places": {
-                "p1": { "offset": 0, "initial": [1], "tokens": [1], "capacity":[0], "x": 70, "y": 250 },
-                "p2": { "offset": 1, "initial": [0], "tokens": [0], "capacity":[0], "x": 300, "y": 250 },
-                "p3": { "offset": 1, "initial": [0], "tokens": [0], "capacity":[0], "x": 200, "y": 350 }
-            },
-            "transitions": {
-                "t1": { "x": 190, "y": 150 },
-                "t2": { "x": 190, "y": 250 }
-            },
-            "arcs": [
-                { "source": "p1", "target": "t1", "weight": [1] },
-                { "source": "t1", "target": "p2", "weight": [1] }
-            ]
+        // set the origin for postMessage
+        const origin = "*";
+        // Get the model data from the meta tag
+        let model = {};
+        let eventLog = [];
+        let nonce = 0;
+        let modelData = document.querySelector('#modelData');
+        if (!modelData) {
+            console.error('Model data not found in the meta tag.');
+        }
+        try {
+            if (modelData && modelData.textContent) {
+                // Parse the JSON data
+                model = JSON.parse(modelData.textContent);
+            } else {
+                console.error('Model data is empty or invalid.');
+            }
+            if (typeof model !== 'object' || !model) {
+                console.error('Parsed model is not an object:', model);
+            }
+        } catch (e) {
+            console.error('Error parsing model data:', e);
         }
 
         function init() {
@@ -88,14 +136,86 @@
                 console.error('SVG object not found or not loaded yet.');
                 return;
             }
-            svg.contentWindow.postMessage({ type: 'setModel', model: model }, '*'); // Send the model to the SVG
+            svg.contentWindow.postMessage({ type: 'setModel', model: model }, origin); // Send the model to the SVG
             const playBtn = document.getElementById('playBtn');
+            const modelData = document.getElementById('modelData');
+
             playBtn.addEventListener('click', function() {
-                if (svg.contentWindow) {
-                    console.log("Restarting the SVG animation...");
-                    svg.contentWindow.postMessage({ type: 'restart' }, '*');
+                if (!svg.contentWindow) {
+                    console.error('SVG contentWindow not available.');
+                    return;
                 }
+                svg.contentWindow.postMessage({ type: 'restart' }, origin);
+                // show the data
+                if (modelData) {
+                    modelData.style.display = 'block';
+                }
+                // Change the status text
+                const statusText = document.querySelector('#status text');
+                if (statusText) {
+                    statusText.textContent = 'Status: Restarted';
+                }
+                // set timeout for 1 second to change the status back to running
+                setTimeout(() => {
+                    const statusText = document.querySelector('#status text');
+                    if (statusText) {
+                        statusText.textContent = 'Status: Running';
+                    }
+                }, 1000);
+                nonce = 0;
+                eventLog = [];
+                RenderHistory();
             });
+
+            // update model after edit in the textarea
+            if (modelData) {
+                modelData.addEventListener('input', function() {
+                    try {
+                        const newModel = JSON.parse(modelData.value);
+                        if (typeof newModel === 'object' && newModel) {
+                            model = newModel;
+                            svg.contentWindow.postMessage({ type: 'setModel', model: model }, origin); // Send the updated model to the SVG
+                            //console.log('Updated model:', model);
+                        } else {
+                            //console.error('Invalid model format:', newModel);
+                        }
+                    } catch (e) {
+                        //console.error('Error parsing model data:', e);
+                    }
+                });
+            }
+
+            function RenderHistory() {
+                const fragment = document.createDocumentFragment();
+                // history in reverse order
+
+                eventLog.forEach((event, index) => {
+                    const offset = 26
+                    const newText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    newText.setAttribute('x', '10');
+                    newText.setAttribute('y', `${offset + (eventLog.length - index) * 19-3}`);
+                    // string pad 8 chars to left
+                    newText.textContent = `${(index + 1).toString().padStart(3, '0')}.  ${event.transitionId}`;
+                    newText.setAttribute('stroke', '#222');
+
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    rect.setAttribute('x', '0');
+                    rect.setAttribute('y', `${offset+2 + index * 19}`);
+                    rect.setAttribute('class', 'history-item');
+                    rect.setAttribute('fill', '#fff');
+                    rect.setAttribute('rx', '5');
+                    rect.setAttribute('ry', '5');
+                    fragment.appendChild(rect);
+                    fragment.appendChild(newText);
+                });
+                const history = document.getElementById('history');
+                if (history) {
+                    while (history.childNodes.length > 1) {
+                        history.removeChild(history.lastChild);
+                    }
+                    history.appendChild(fragment);
+                }
+            }
 
             window.addEventListener('message', function(event) {
                 if (event.origin !== window.location.origin) {
@@ -103,20 +223,26 @@
                     return;
                 }
                 if (event.data.type === 'transitionFired') {
-                    // append to history
-                    const history = document.getElementById('history');
-                    if (history) {
-                        // Remove the previous text
-                        while (history.childNodes.length > 2) {
-                            history.removeChild(history.lastChild);
-                        }
-                        // Add new transition fired info
-                        const newText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                        newText.setAttribute('x', '10');
-                        newText.setAttribute('y', `${20 + (history.childNodes.length - 2) * 15}`);
-                        newText.textContent = `Transition fired: ${event.data.transitionId}`;
-                        history.appendChild(newText);
+                    // KLUDGE getting notified 2x
+                    if (nonce === event.data.sequence) {
+                        return;
+                    } else {
+                        nonce = event.data.sequence;
                     }
+                    // add to front
+                    eventLog.push(event.data);
+                    RenderHistory();
+                    // hide the data
+                    const modelData = document.getElementById('modelData');
+                    if (modelData) {
+                        modelData.style.display = 'none';
+                    }
+                } else if (event.data.type === 'error') {
+                    console.error('Error from SVG:', event.data.message);
+                } else if (event.data.type === 'resize') {
+                    render(svg);
+                } else {
+                    //console.log('Unknown message type:', event.data.type);
                 }
             }, false);
             render(svg)
@@ -124,7 +250,7 @@
 
         function render(svg) {
             const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-            svg.contentWindow.postMessage({ type: 'resize', width, height: 600 }, '*');
+            svg.contentWindow.postMessage({ type: 'resize', width, height: 600 }, origin);
         }
 
         // FIXME doesn't scale properly on resize
