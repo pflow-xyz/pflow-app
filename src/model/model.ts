@@ -373,16 +373,16 @@ export function toJson(model: ModelData): string {
         json += `    "${placeName}": {`;
         json += `"offset": ${placeData.offset},`;
         if (placeData.initial) {
-            json += `"initial": "${placeData.initial.toString()}",`;
+            json += `"initial": [${placeData.initial.join(",")}],`;
         }
         if (placeData.capacity) {
-            json += `"capacity": "${placeData.capacity.toString()}",`;
+            json += `"capacity": [${placeData.capacity.join(",")}],`;
         }
         json += `"x": ${placeData.x}, "y": ${placeData.y}`;
         json += (i < places.length - 1) ? "},\n" : "}\n";
     }
 
-    json += `  },\n`; // close places
+    json += `  },\n`;
 
     // Handle transitions
     json += `  "transitions": {\n`;
@@ -413,7 +413,7 @@ export function toJson(model: ModelData): string {
         json += `"source": "${arc.source}",`;
         json += `"target": "${arc.target}"`;
         if (arc.weight) {
-            json += `, "weight": "${arc.weight.toString()}"`;
+            json += `, "weight": [${arc.weight.join(",")}]`;
         }
         if (arc.inhibit) {
             json += `, "inhibit": true`;
