@@ -25,6 +25,7 @@ body {
     outline: none;
     margin-left: 15px;
     margin-top: 40px;
+    overflow: auto;
 }
 
 #controls {

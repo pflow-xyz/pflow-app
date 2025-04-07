@@ -1,38 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"
-viewBox="0 0 400 400">
-  <style>
-  .place { fill: #ffffff; stroke: #000000; stroke-width: 1.5; } 
-  .transition {
-	fill: #ffffff; stroke: #000000; stroke-width: 1.5; cursor: pointer; user-select: text;
-  }
-  .transition.enabled { fill: #62fa75 } 
-  .transition.inhibited {
-	fill: #fab5b0; stroke: #000000; stroke-width: 1.5; cursor: pointer; user-select: text;
-  }
-  .arc { stroke: #000000; stroke-width: 1; }
-  .label {
-	font-size: small; font-family: sans-serif; fill: #000000; user-select: none;
-  }
-  .token { fill: #000000; stroke: gray; stroke-width: 0.5; }
-  .tokenSmall { font-size: small; user-select: none; font-weight: bold; }
-  .red { fill: #ff0000; color: #ff0000; }
-  .green { fill: #00ff00; color: #00ff00; }
-  .blue { fill: #0000ff; color: #0000ff; }
-</style>
-  <defs>
-    <marker id="markerArrow1" markerWidth="22.5" markerHeight="12"
-    refX="9" refY="6" orient="auto">
-      <path d="M3,1.5 L3,12 L10.5,6 L3,1.5" />
-    </marker>
-    <marker id="markerInhibit1" markerWidth="30" markerHeight="16"
-    refX="10" refY="8" orient="auto">
-      <circle cx="8" cy="9" r="4" />
-    </marker>
-  </defs>
-  <metadata id="metadata">{ "tokens": [ "black" ], "places": {},
-  "transitions": {}, "arcs": [] }</metadata>
-  <script type="text/ecmascript">
-    <![CDATA[
 let petriNet = {};
 let sequence = 0;
 
@@ -396,6 +361,3 @@ window.addEventListener('message', (event) => {
 
 window.addEventListener('load', init);
 document.addEventListener('DOMContentLoaded', init);
-]]>
-</script>
-</svg>
