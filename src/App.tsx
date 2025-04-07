@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
            import { Model, importUrl, ModelData } from './model/model';
            import './App.css';
            import CodeEditor from "@uiw/react-textarea-code-editor";
-           import rehypePrism from "rehype-prism-plus";
 
            const defaultModel: ModelData = {
                "modelType": "PetriNet",
@@ -64,7 +63,7 @@ import React, { useEffect, useState } from 'react';
                            sourceElement.style.height = `${Math.max(height, 300)}px`;
                            sourceElement.style.width = `${Math.max(width - 40, 300)}px`;
                        }
-                       setEditorHeight(window.innerHeight - 680);
+                       setEditorHeight(height);
                    };
 
                    handleResize();
@@ -90,7 +89,12 @@ import React, { useEffect, useState } from 'react';
                                </object>
                            </foreignObject>
                            <foreignObject id="pflow-logo" x="20" y="12" width="150" height="35">
-                               <a href="/"><svg width="150" height="35" stroke="#FFFFFF"><g transform="scale(.3,.3)"><path d="M100.88 28.02H78.46v5.61h-5.6v5.6h-5.6v-5.6h5.6v-5.61h5.6V5.6h-5.6V0H61.65v5.6h-5.6v28.02h-5.6V5.6h-5.6V0H33.64v5.6h-5.6v22.42h5.6v5.61h5.6v5.6h-5.6v-5.6h-5.6v-5.61H5.6v5.61H0v11.21h5.6v5.6h28.02v5.6H5.6v5.61H0v11.21h5.6v5.6h22.42v-5.6h5.6v-5.61h5.6v5.61h-5.6v5.6h-5.6v22.42h5.6v5.6h11.21v-5.6h5.6V72.86h5.6v28.02h5.6v5.6h11.21v-5.6h5.6V78.46h-5.6v-5.6h-5.6v-5.61h5.6v5.61h5.6v5.6h22.42v-5.6h5.6V61.65h-5.6v-5.61H72.84v-5.6h28.02v-5.6h5.6V33.63h-5.6v-5.61zM67.25 56.04v5.61h-5.6v5.6H44.84v-5.6h-5.6V44.84h5.6v-5.6h16.81v5.6h5.6v11.21zm89.89-28.02h-11.21v11.21h11.21zm33.63 11.21h11.21V28.02h-33.63v11.21z"></path><path d="M179.56 72.86h-11.21V39.23h-11.21v56.05h-11.21v11.21h33.63V95.28h-11.21V84.07h33.63V72.86zm22.42-22.42v22.42h11.21V39.23h-11.21zm33.63-22.42H224.4v11.21h11.21v33.63H224.4v11.21h33.63V72.86h-11.21V39.23h11.21V28.02h-11.21V16.81h-11.21z"></path><path d="M246.82 5.6v11.21h22.42V5.6zm56.05 56.05V5.6h-22.42v11.21h11.21v56.05h-11.21v11.21h33.63V72.86h-11.21zm33.63-11.21V39.23h-11.21v33.63h11.21zm22.42 0h-11.21v11.21h11.21zm0-11.21h11.21V28.02H336.5v11.21zm-11.21 33.63H336.5v11.21h33.63V72.86zm22.42-22.42v22.42h11.21V39.23h-11.21zm44.84-11.21V28.02h-22.42v11.21h11.21v22.42h11.21zm11.21 22.42h-11.21v11.21h11.21zm11.21 11.21h-11.21v11.21h11.21zm11.21-22.42V28.02h-11.21v44.84h11.21zm11.21 22.42H448.6v11.21h11.21zm11.21-11.21h-11.21v11.21h11.21zm11.21-33.63h-11.21v33.63h11.21V39.23h11.21V28.02h-11.21V16.81h-11.21z"></path></g></svg>
+                               <a href="/">
+                                   <svg width="150" height="35" stroke="#FFFFFF">
+                                       <g transform="scale(.3,.3)">
+                                           <path d="M100.88 28.02H78.46v5.61h-5.6v5.6h-5.6v-5.6h5.6v-5.61h5.6V5.6h-5.6V0H61.65v5.6h-5.6v28.02h-5.6V5.6h-5.6V0H33.64v5.6h-5.6v22.42h5.6v5.61h5.6v5.6h-5.6v-5.6h-5.6v-5.61H5.6v5.61H0v11.21h5.6v5.6h28.02v5.6H5.6v5.61H0v11.21h5.6v5.6h22.42v-5.6h5.6v-5.61h5.6v5.61h-5.6v5.6h-5.6v22.42h5.6v5.6h11.21v-5.6h5.6V72.86h5.6v28.02h5.6v5.6h11.21v-5.6h5.6V78.46h-5.6v-5.6h-5.6v-5.61h5.6v5.61h5.6v5.6h22.42v-5.6h5.6V61.65h-5.6v-5.61H72.84v-5.6h28.02v-5.6h5.6V33.63h-5.6v-5.61zM67.25 56.04v5.61h-5.6v5.6H44.84v-5.6h-5.6V44.84h5.6v-5.6h16.81v5.6h5.6v11.21zm89.89-28.02h-11.21v11.21h11.21zm33.63 11.21h11.21V28.02h-33.63v11.21z"></path><path d="M179.56 72.86h-11.21V39.23h-11.21v56.05h-11.21v11.21h33.63V95.28h-11.21V84.07h33.63V72.86zm22.42-22.42v22.42h11.21V39.23h-11.21zm33.63-22.42H224.4v11.21h11.21v33.63H224.4v11.21h33.63V72.86h-11.21V39.23h11.21V28.02h-11.21V16.81h-11.21z"></path><path d="M246.82 5.6v11.21h22.42V5.6zm56.05 56.05V5.6h-22.42v11.21h11.21v56.05h-11.21v11.21h33.63V72.86h-11.21zm33.63-11.21V39.23h-11.21v33.63h11.21zm22.42 0h-11.21v11.21h11.21zm0-11.21h11.21V28.02H336.5v11.21zm-11.21 33.63H336.5v11.21h33.63V72.86zm22.42-22.42v22.42h11.21V39.23h-11.21zm44.84-11.21V28.02h-22.42v11.21h11.21v22.42h11.21zm11.21 22.42h-11.21v11.21h11.21zm11.21 11.21h-11.21v11.21h11.21zm11.21-22.42V28.02h-11.21v44.84h11.21zm11.21 22.42H448.6v11.21h11.21zm11.21-11.21h-11.21v11.21h11.21zm11.21-33.63h-11.21v33.63h11.21V39.23h11.21V28.02h-11.21V16.81h-11.21z"></path>
+                                       </g>
+                                   </svg>
                                </a>
                            </foreignObject>
                            <foreignObject height="30" width="100%" x="19" y="603">
@@ -125,18 +129,14 @@ import React, { useEffect, useState } from 'react';
                            value={modelState.toJson()}
                            data-color-mode="light"
                            language={"js"}
-                           placeholder="source"
-                           rehypePlugins={[
-                               [rehypePrism, { ignoreMissing: true, showLineNumbers: false }],
-                           ]}
+                           placeholder="source v1"
                            padding={10}
                            // @ts-ignore
                            style={{
-                               fontSize: 14,
                                minHeight: editorHeight,
                                backgroundColor: "#FFFFFF",
                                border: "1px solid #E0E0E0",
-                               fontFamily: "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                               fontFamily: "monospace",
                            }}
                            onChange={(evt) => {
                                try {

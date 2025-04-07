@@ -6,16 +6,27 @@ build of app.pflow.dev - no wallet connector - minimal build/viewer
 
 WIP
 ---
-- [ ] Review roadmap.md - consider deploying gnoland-only version first
 - [ ] gno.land version needs multi-token support
 - [ ] url-visualizer on gno.land to build out multi-step actions
-- [ ] in this project use ./static/form.html and ./static/model.svg as template
+- [ ] fix token colors - changing colors in the editor should change the diagram
+- [ ] fix capacity set to 0 does not remove capacity limitation
+- [ ] test that permalink gets updated on edit
+- [ ] minURL - add support for multi-token colors
+
+ 
+  DONE
+----
+- [x] fix editor interactions - issue selecting text and last few lines of code
+- [x] in this project use ./static/form.html and ./static/model.svg as template
+- [x] Review roadmap.md - consider deploying gnoland-only version first
 
 BACKLOG
 -------
 - [ ] fix failing tests
 - [ ] complete upgrades for colored tokens
 - [ ] check backward-compatible support for URL formats
+- [ ] consider adopting https://github.com/microsoft/monaco-editor/tree/main for multi-language support
+- [ ] review the plan to implement custom lexer/parser for go, julia, solidity, python
 ```
 /?foo=1&bar=1&baz=1
 ````
@@ -40,5 +51,3 @@ ICEBOX
 - [ ] exploring dom updates:update object.data
 - [ ] vs live updates inside an embedded SVG using  postMessage().
  
-DONE
-----
