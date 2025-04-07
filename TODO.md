@@ -12,6 +12,7 @@ WIP
 - [ ] fix capacity set to 0 does not remove capacity limitation
 - [ ] test that permalink gets updated on edit
 - [ ] minURL - add support for multi-token colors
+- [ ] fix docker build to work w/ tests in place
 
  
   DONE
