@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" >
     <style type="text/css">
-        @import url("pflow.css");
+        @import url("model.css");
     </style>
     <defs>
     <marker id="markerArrow1" markerWidth="22.5" markerHeight="12" refX="9" refY="6" orient="auto">
@@ -18,5 +18,5 @@
         "arcs": []
     }
     </metadata>
-    <script href="pflow.js"/>
+    <script href="model.js"/>
 </svg>
