@@ -117,10 +117,11 @@ function init() {
     }
 
     window.addEventListener('message', function(event) {
-	if (event.origin !== window.location.origin) {
-	    console.error('Invalid origin:', event.origin);
-	    return;
-	}
+	// REVIEW: by removing this check we allow cross origin interaction
+	// if (event.origin !== window.location.origin) {
+	//     console.error('Invalid origin:', event.origin);
+	//     return;
+	// }
 	if (event.data.type === "reset") {
 	    reset();
 	}
